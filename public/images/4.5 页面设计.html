@@ -1,0 +1,238 @@
+<p>我们使用 jQuery + Semantic-UI 实现前端页面的设计，最终效果图如下:</p>
+<p><strong>注册页</strong></p>
+<p><img src="/images/4.5.1.png" alt=""></p>
+<p><strong>登录页</strong></p>
+<p><img src="/images/4.5.2.png" alt=""></p>
+<p><strong>未登录时的主页（或用户页）</strong></p>
+<p><img src="/images/4.5.3.png" alt=""></p>
+<p><strong>登录后的主页（或用户页）</strong></p>
+<p><img src="/images/4.5.4.png" alt=""></p>
+<p><strong>发表文章页</strong></p>
+<p><img src="/images/4.5.5.png" alt=""></p>
+<p><strong>编辑文章页</strong></p>
+<p><img src="/images/4.5.6.png" alt=""></p>
+<p><strong>未登录时的文章页</strong></p>
+<p><img src="/images/4.5.7.png" alt=""></p>
+<p><strong>登录后的文章页</strong></p>
+<p><img src="/images/4.5.8.png" alt=""></p>
+<p><strong>通知</strong></p>
+<p><img src="/images/4.5.9.png" alt=""><br><img src="/images/4.5.10.png" alt=""><br><img src="/images/4.5.11.png" alt=""></p>
+<h2 id="4-5-1-组件"><a href="#4-5-1-组件" class="headerlink" title="4.5.1 组件"></a>4.5.1 组件</h2><p>前面提到过，我们可以将模板拆分成一些组件，然后使用 ejs 的 include 方法将组件组合起来进行渲染。我们将页面切分成以下组件：</p>
+<p><strong>主页</strong></p>
+<p><img src="/images/4.5.12.png" alt=""></p>
+<p><strong>文章页</strong></p>
+<p><img src="/images/4.5.13.png" alt=""></p>
+<p>根据上面的组件切分图，我们创建以下样式及模板文件：</p>
+<p><strong>public/css/style.css</strong></p>
+<pre><code class="css"><span class="comment">/* ---------- 全局样式 ---------- */</span>
+
+<span class="selector-tag">body</span> {
+  <span class="attribute">width</span>: <span class="number">1100px</span>;
+  <span class="attribute">height</span>: <span class="number">100%</span>;
+  <span class="attribute">margin</span>: <span class="number">0</span> auto;
+  <span class="attribute">padding-top</span>: <span class="number">40px</span>;
+}
+
+<span class="selector-tag">a</span><span class="selector-pseudo">:hover</span> {
+  <span class="attribute">border-bottom</span>: <span class="number">3px</span> solid <span class="number">#4fc08d</span>;
+}
+
+<span class="selector-class">.button</span> {
+  <span class="attribute">background-color</span>: <span class="number">#4fc08d</span> <span class="meta">!important</span>;
+  <span class="attribute">color</span>: <span class="number">#fff</span> <span class="meta">!important</span>;
+}
+
+<span class="selector-class">.avatar</span> {
+  <span class="attribute">border-radius</span>: <span class="number">3px</span>;
+  <span class="attribute">width</span>: <span class="number">48px</span>;
+  <span class="attribute">height</span>: <span class="number">48px</span>;
+  <span class="attribute">float</span>: right;
+}
+
+<span class="comment">/* ---------- nav ---------- */</span>
+
+<span class="selector-class">.nav</span> {
+  <span class="attribute">margin-bottom</span>: <span class="number">20px</span>;
+  <span class="attribute">color</span>: <span class="number">#999</span>;
+  <span class="attribute">text-align</span>: center;
+}
+
+<span class="selector-class">.nav</span> <span class="selector-tag">h1</span> {
+  <span class="attribute">color</span>: <span class="number">#4fc08d</span>;
+  <span class="attribute">display</span>: inline-block;
+  <span class="attribute">margin</span>: <span class="number">10px</span> <span class="number">0</span>;
+}
+
+<span class="comment">/* ---------- nav-setting ---------- */</span>
+
+<span class="selector-class">.nav-setting</span> {
+  <span class="attribute">position</span>: fixed;
+  <span class="attribute">right</span>: <span class="number">30px</span>;
+  <span class="attribute">top</span>: <span class="number">35px</span>;
+  <span class="attribute">z-index</span>: <span class="number">999</span>;
+}
+
+<span class="selector-class">.nav-setting</span> <span class="selector-class">.ui</span><span class="selector-class">.dropdown</span><span class="selector-class">.button</span> {
+  <span class="attribute">padding</span>: <span class="number">10px</span> <span class="number">10px</span> <span class="number">0</span> <span class="number">10px</span>;
+  <span class="attribute">background-color</span>: <span class="number">#fff</span> <span class="meta">!important</span>;
+}
+
+<span class="selector-class">.nav-setting</span> <span class="selector-class">.icon</span><span class="selector-class">.bars</span> {
+  <span class="attribute">color</span>: <span class="number">#000</span>;
+  <span class="attribute">font-size</span>: <span class="number">18px</span>;
+}
+
+<span class="comment">/* ---------- post-content ---------- */</span>
+
+<span class="selector-class">.post-content</span> <span class="selector-tag">h3</span> <span class="selector-tag">a</span> {
+  <span class="attribute">color</span>: <span class="number">#4fc08d</span> <span class="meta">!important</span>;
+}
+
+<span class="selector-class">.post-content</span> <span class="selector-class">.tag</span> {
+  <span class="attribute">font-size</span>: <span class="number">13px</span>;
+  <span class="attribute">margin-right</span>: <span class="number">5px</span>;
+  <span class="attribute">color</span>: <span class="number">#999</span>;
+}
+
+<span class="selector-class">.post-content</span> <span class="selector-class">.tag</span><span class="selector-class">.right</span> {
+  <span class="attribute">float</span>: right;
+  <span class="attribute">margin-right</span>: <span class="number">0</span>;
+}
+
+<span class="selector-class">.post-content</span> <span class="selector-class">.tag</span><span class="selector-class">.right</span> <span class="selector-tag">a</span> {
+  <span class="attribute">color</span>: <span class="number">#999</span>;
+}</code></pre>
+<p><strong>views/header.ejs</strong></p>
+<pre><code class="ejs">&lt;!DOCTYPE html&gt;
+&lt;html&gt;
+  &lt;head&gt;
+    &lt;meta charset=&quot;utf-8&quot;&gt;
+    &lt;title&gt;&lt;%= blog.title %&gt;&lt;/title&gt;
+    &lt;link rel=&quot;stylesheet&quot; href=&quot;//cdn.bootcss.com/semantic-ui/2.1.8/semantic.min.css&quot;&gt;
+    &lt;link rel=&quot;stylesheet&quot; href=&quot;/css/style.css&quot;&gt;
+    &lt;script src=&quot;//cdn.bootcss.com/jquery/1.11.3/jquery.min.js&quot;&gt;&lt;/script&gt;
+    &lt;script src=&quot;//cdn.bootcss.com/semantic-ui/2.1.8/semantic.min.js&quot;&gt;&lt;/script&gt;
+  &lt;/head&gt;
+  &lt;body&gt;
+  &lt;%- include(&apos;components/nav&apos;) %&gt;
+  &lt;%- include(&apos;components/nav-setting&apos;) %&gt;
+  &lt;%- include(&apos;components/notification&apos;) %&gt;</code></pre>
+<p><strong>views/footer.ejs</strong></p>
+<pre><code class="ejs">  &lt;script type=&quot;text/javascript&quot;&gt;
+   $(document).ready(function () {
+      // 点击按钮弹出下拉框
+      $(&apos;.ui.dropdown&apos;).dropdown();
+
+      // 鼠标悬浮在头像上，弹出气泡提示框
+      $(&apos;.post-content .avatar-link&apos;).popup({
+        inline: true,
+        position: &apos;bottom right&apos;,
+        lastResort: &apos;bottom right&apos;
+      });
+    })
+  &lt;/script&gt;
+  &lt;/body&gt;
+&lt;/html&gt;</code></pre>
+<blockquote>
+<p>注意：上面 <code>&lt;script&gt;&lt;/script&gt;</code> 是 semantic-ui 操控页面控件的代码，一定要放到 footer.ejs 的 <code>&lt;/body&gt;</code> 的前面，因为只有页面加载完后才能通过 JQuery 获取 DOM 元素。</p>
+</blockquote>
+<p>在 views 目录下新建 components 目录用来存放组件（即可以复用的模板片段），在该目录下创建以下文件：</p>
+<p><strong>views/components/nav.ejs</strong></p>
+<pre><code class="ejs">&lt;div class=&quot;nav&quot;&gt;
+  &lt;div class=&quot;ui grid&quot;&gt;
+    &lt;div class=&quot;four wide column&quot;&gt;&lt;/div&gt;
+
+    &lt;div class=&quot;eight wide column&quot;&gt;
+      &lt;a href=&quot;/posts&quot;&gt;&lt;h1&gt;&lt;%= blog.title %&gt;&lt;/h1&gt;&lt;/a&gt;
+      &lt;p&gt;&lt;%= blog.description %&gt;&lt;/p&gt;
+    &lt;/div&gt;
+  &lt;/div&gt;
+&lt;/div&gt;</code></pre>
+<p><strong>views/components/nav-setting.ejs</strong></p>
+<pre><code class="ejs">&lt;div class=&quot;nav-setting&quot;&gt;
+  &lt;div class=&quot;ui buttons&quot;&gt;
+    &lt;div class=&quot;ui floating dropdown button&quot;&gt;
+      &lt;i class=&quot;icon bars&quot;&gt;&lt;/i&gt;
+      &lt;div class=&quot;menu&quot;&gt;
+        &lt;% if (user) { %&gt;
+          &lt;a class=&quot;item&quot; href=&quot;/posts?author=&lt;%= user._id %&gt;&quot;&gt;个人主页&lt;/a&gt;
+          &lt;div class=&quot;divider&quot;&gt;&lt;/div&gt;
+          &lt;a class=&quot;item&quot; href=&quot;/posts/create&quot;&gt;发表文章&lt;/a&gt;
+          &lt;a class=&quot;item&quot; href=&quot;/signout&quot;&gt;登出&lt;/a&gt;
+        &lt;% } else { %&gt;
+          &lt;a class=&quot;item&quot; href=&quot;/signin&quot;&gt;登录&lt;/a&gt;
+          &lt;a class=&quot;item&quot; href=&quot;/signup&quot;&gt;注册&lt;/a&gt;
+        &lt;% } %&gt;
+      &lt;/div&gt;
+    &lt;/div&gt;
+  &lt;/div&gt;
+&lt;/div&gt;</code></pre>
+<p><strong>views/components/notification.ejs</strong></p>
+<pre><code class="ejs">&lt;div class=&quot;ui grid&quot;&gt;
+  &lt;div class=&quot;four wide column&quot;&gt;&lt;/div&gt;
+  &lt;div class=&quot;eight wide column&quot;&gt;
+
+  &lt;% if (success) { %&gt;
+    &lt;div class=&quot;ui success message&quot;&gt;
+      &lt;p&gt;&lt;%= success %&gt;&lt;/p&gt;
+    &lt;/div&gt;
+  &lt;% } %&gt;
+
+  &lt;% if (error) { %&gt;
+    &lt;div class=&quot;ui error message&quot;&gt;
+      &lt;p&gt;&lt;%= error %&gt;&lt;/p&gt;
+    &lt;/div&gt;
+  &lt;% } %&gt;
+
+  &lt;/div&gt;
+&lt;/div&gt;</code></pre>
+<h2 id="4-5-2-app-locals-和-res-locals"><a href="#4-5-2-app-locals-和-res-locals" class="headerlink" title="4.5.2 app.locals 和 res.locals"></a>4.5.2 app.locals 和 res.locals</h2><p>上面的 ejs 模板中我们用到了 blog、user、success、error 变量，我们将 blog 变量挂载到 <code>app.locals</code> 下，将 user、success、error 挂载到 <code>res.locals</code> 下。为什么要这么做呢？<code>app.locals</code> 和 <code>res.locals</code> 是什么？它们有什么区别？</p>
+<p>express 中有两个对象可用于模板的渲染：<code>app.locals</code> 和 <code>res.locals</code>。我们从 express 源码一探究竟：</p>
+<p><strong>express/lib/application.js</strong></p>
+<pre><code class="js">app.render = <span class="function"><span class="keyword">function</span> <span class="title">render</span>(<span class="params">name, options, callback</span>) </span>{
+  ...
+  <span class="keyword">var</span> opts = options;
+  <span class="keyword">var</span> renderOptions = {};
+  ...
+  <span class="comment">// merge app.locals</span>
+  merge(renderOptions, <span class="keyword">this</span>.locals);
+
+  <span class="comment">// merge options._locals</span>
+  <span class="keyword">if</span> (opts._locals) {
+    merge(renderOptions, opts._locals);
+  }
+
+  <span class="comment">// merge options</span>
+  merge(renderOptions, opts);
+  ...
+  tryRender(view, renderOptions, done);
+};</code></pre>
+<p><strong>express/lib/response.js</strong></p>
+<pre><code class="js">res.render = <span class="function"><span class="keyword">function</span> <span class="title">render</span>(<span class="params">view, options, callback</span>) </span>{
+  <span class="keyword">var</span> app = <span class="keyword">this</span>.req.app;
+  <span class="keyword">var</span> opts = options || {};
+  ...
+  <span class="comment">// merge res.locals</span>
+  opts._locals = self.locals;
+  ...
+  <span class="comment">// render</span>
+  app.render(view, opts, done);
+};</code></pre>
+<p>可以看出：在调用 <code>res.render</code> 的时候，express 合并（merge）了 3 处的结果后传入要渲染的模板，优先级：<code>res.render</code> 传入的对象&gt; <code>res.locals</code> 对象 &gt; <code>app.locals</code> 对象，所以 <code>app.locals</code> 和 <code>res.locals</code> 几乎没有区别，都用来渲染模板，使用上的区别在于：<code>app.locals</code> 上通常挂载常量信息（如博客名、描述、作者这种不会变的信息），<code>res.locals</code> 上通常挂载变量信息，即每次请求可能的值都不一样（如请求者信息，<code>res.locals.user = req.session.user</code>）。</p>
+<p>修改 index.js，在 <code>routes(app)</code> 上一行添加如下代码：</p>
+<pre><code class="js"><span class="comment">// 设置模板全局常量</span>
+app.locals.blog = {
+  title: pkg.name,
+  description: pkg.description
+}
+
+<span class="comment">// 添加模板必需的三个变量</span>
+app.use(<span class="function"><span class="keyword">function</span> (<span class="params">req, res, next</span>) </span>{
+  res.locals.user = req.session.user
+  res.locals.success = req.flash(<span class="string">'success'</span>).toString()
+  res.locals.error = req.flash(<span class="string">'error'</span>).toString()
+  next()
+})</code></pre>
+<p>这样在调用 <code>res.render</code> 的时候就不用传入这四个变量了，express 为我们自动 merge 并传入了模板，所以我们可以在模板中直接使用这四个变量。</p>
+<p>上一节：<a href="https://github.com/nswbmw/N-blog/blob/master/book/4.4%20%E5%8A%9F%E8%83%BD%E8%AE%BE%E8%AE%A1.md">4.4 功能设计</a></p>
+<p>下一节：<a href="https://github.com/nswbmw/N-blog/blob/master/book/4.6%20%E8%BF%9E%E6%8E%A5%E6%95%B0%E6%8D%AE%E5%BA%93.md">4.6 连接数据库</a></p>

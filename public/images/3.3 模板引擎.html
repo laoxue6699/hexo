@@ -1,0 +1,101 @@
+<p>模板引擎（Template Engine）是一个将页面模板和数据结合起来生成 html 的工具。上例中，我们只是返回纯文本给浏览器，现在我们修改代码返回一个 html 页面给浏览器。</p>
+<h2 id="3-3-1-ejs"><a href="#3-3-1-ejs" class="headerlink" title="3.3.1 ejs"></a>3.3.1 ejs</h2><p>模板引擎有很多，<a href="https://www.npmjs.com/package/ejs">ejs</a> 是其中一种，因为它使用起来十分简单，而且与 express 集成良好，所以我们使用 ejs。安装 ejs：</p>
+<pre><code class="sh">npm i ejs --save</code></pre>
+<p>修改 index.js 如下：</p>
+<p><strong>index.js</strong></p>
+<pre><code class="js"><span class="keyword">const</span> path = <span class="built_in">require</span>(<span class="string">'path'</span>)
+<span class="keyword">const</span> express = <span class="built_in">require</span>(<span class="string">'express'</span>)
+<span class="keyword">const</span> app = express()
+<span class="keyword">const</span> indexRouter = <span class="built_in">require</span>(<span class="string">'./routes/index'</span>)
+<span class="keyword">const</span> userRouter = <span class="built_in">require</span>(<span class="string">'./routes/users'</span>)
+
+app.set(<span class="string">'views'</span>, path.join(__dirname, <span class="string">'views'</span>))<span class="comment">// 设置存放模板文件的目录</span>
+app.set(<span class="string">'view engine'</span>, <span class="string">'ejs'</span>)<span class="comment">// 设置模板引擎为 ejs</span>
+
+app.use(<span class="string">'/'</span>, indexRouter)
+app.use(<span class="string">'/users'</span>, userRouter)
+
+app.listen(<span class="number">3000</span>)</code></pre>
+<p>通过 <code>app.set</code> 设置模板引擎为 ejs 和存放模板的目录。在 myblog 下新建 views 文件夹，在 views 下新建 users.ejs，添加如下代码：</p>
+<p><strong>views/users.ejs</strong></p>
+<pre><code class="html"><span class="meta">&lt;!DOCTYPE html&gt;</span>
+<span class="tag">&lt;<span class="name">html</span>&gt;</span>
+  <span class="tag">&lt;<span class="name">head</span>&gt;</span>
+    <span class="tag">&lt;<span class="name">style</span> <span class="attr">type</span>=<span class="string">"text/css"</span>&gt;</span>
+<span class="css">      <span class="selector-tag">body</span> {<span class="attribute">padding</span>: <span class="number">50px</span>;<span class="attribute">font</span>: <span class="number">14px</span> <span class="string">"Lucida Grande"</span>, Helvetica, Arial, sans-serif;}</span>
+    <span class="tag">&lt;/<span class="name">style</span>&gt;</span>
+  <span class="tag">&lt;/<span class="name">head</span>&gt;</span>
+  <span class="tag">&lt;<span class="name">body</span>&gt;</span>
+    <span class="tag">&lt;<span class="name">h1</span>&gt;</span><span class="tag">&lt;<span class="name">%=</span> <span class="attr">name.toUpperCase</span>() %&gt;</span><span class="tag">&lt;/<span class="name">h1</span>&gt;</span>
+    <span class="tag">&lt;<span class="name">p</span>&gt;</span>hello, <span class="tag">&lt;<span class="name">%=</span> <span class="attr">name</span> %&gt;</span><span class="tag">&lt;/<span class="name">p</span>&gt;</span>
+  <span class="tag">&lt;/<span class="name">body</span>&gt;</span>
+<span class="tag">&lt;/<span class="name">html</span>&gt;</span></code></pre>
+<p>修改 routes/users.js 如下：</p>
+<p><strong>routes/users.js</strong></p>
+<pre><code class="js"><span class="keyword">const</span> express = <span class="built_in">require</span>(<span class="string">'express'</span>)
+<span class="keyword">const</span> router = express.Router()
+
+router.get(<span class="string">'/:name'</span>, <span class="function"><span class="keyword">function</span> (<span class="params">req, res</span>) </span>{
+  res.render(<span class="string">'users'</span>, {
+    name: req.params.name
+  })
+})
+
+<span class="built_in">module</span>.exports = router</code></pre>
+<p>通过调用 <code>res.render</code> 函数渲染 ejs 模板，res.render 第一个参数是模板的名字，这里是 users 则会匹配 views/users.ejs，第二个参数是传给模板的数据，这里传入 name，则在 ejs 模板中可使用 name。<code>res.render</code> 的作用就是将模板和数据结合生成 html，同时设置响应头中的 <code>Content-Type: text/html</code>，告诉浏览器我返回的是 html，不是纯文本，要按 html 展示。现在我们访问 <code>localhost:3000/users/haha</code>，如下图所示：</p>
+<p><img src="/images/3.3.1.png" alt=""></p>
+<p>上面代码可以看到，我们在模板 <code>&lt;%= name.toUpperCase() %&gt;</code> 中使用了 JavaScript 的语法 <code>.toUpperCase()</code> 将名字转化为大写，那这个 <code>&lt;%= xxx %&gt;</code> 是什么东西呢？ejs 有 3 种常用标签：</p>
+<ol>
+<li><code>&lt;% code %&gt;</code>：运行 JavaScript 代码，不输出</li>
+<li><code>&lt;%= code %&gt;</code>：显示转义后的 HTML内容</li>
+<li><code>&lt;%- code %&gt;</code>：显示原始 HTML 内容</li>
+</ol>
+<blockquote>
+<p>注意：<code>&lt;%= code %&gt;</code> 和 <code>&lt;%- code %&gt;</code> 都可以是 JavaScript 表达式生成的字符串，当变量 code 为普通字符串时，两者没有区别。当 code 比如为 <code>&lt;h1&gt;hello&lt;/h1&gt;</code> 这种字符串时，<code>&lt;%= code %&gt;</code> 会原样输出 <code>&lt;h1&gt;hello&lt;/h1&gt;</code>，而 <code>&lt;%- code %&gt;</code> 则会显示 H1 大的 hello 字符串。</p>
+</blockquote>
+<p>下面的例子解释了 <code>&lt;% code %&gt;</code> 的用法：</p>
+<p><strong>Data</strong></p>
+<pre><code>supplies: [&apos;mop&apos;, &apos;broom&apos;, &apos;duster&apos;]</code></pre><p><strong>Template</strong></p>
+<pre><code class="ejs">&lt;ul&gt;
+&lt;% for(var i=0; i&lt;supplies.length; i++) {%&gt;
+   &lt;li&gt;&lt;%= supplies[i] %&gt;&lt;/li&gt;
+&lt;% } %&gt;
+&lt;/ul&gt;</code></pre>
+<p><strong>Result</strong></p>
+<pre><code class="html"><span class="tag">&lt;<span class="name">ul</span>&gt;</span>
+  <span class="tag">&lt;<span class="name">li</span>&gt;</span>mop<span class="tag">&lt;/<span class="name">li</span>&gt;</span>
+  <span class="tag">&lt;<span class="name">li</span>&gt;</span>broom<span class="tag">&lt;/<span class="name">li</span>&gt;</span>
+  <span class="tag">&lt;<span class="name">li</span>&gt;</span>duster<span class="tag">&lt;/<span class="name">li</span>&gt;</span>
+<span class="tag">&lt;/<span class="name">ul</span>&gt;</span></code></pre>
+<p>更多 ejs 的标签请看 <a href="https://www.npmjs.com/package/ejs#tags">官方文档</a>。</p>
+<h2 id="3-3-2-includes"><a href="#3-3-2-includes" class="headerlink" title="3.3.2 includes"></a>3.3.2 includes</h2><p>我们使用模板引擎通常不是一个页面对应一个模板，这样就失去了模板的优势，而是把模板拆成可复用的模板片段组合使用，如在 views 下新建 header.ejs 和 footer.ejs，并修改 users.ejs：</p>
+<p><strong>views/header.ejs</strong></p>
+<pre><code class="ejs">&lt;!DOCTYPE html&gt;
+&lt;html&gt;
+  &lt;head&gt;
+    &lt;style type=&quot;text/css&quot;&gt;
+      body {padding: 50px;font: 14px &quot;Lucida Grande&quot;, Helvetica, Arial, sans-serif;}
+    &lt;/style&gt;
+  &lt;/head&gt;
+  &lt;body&gt;</code></pre>
+<p><strong>views/footer.ejs</strong></p>
+<pre><code class="ejs">  &lt;/body&gt;
+&lt;/html&gt;</code></pre>
+<p><strong>views/users.ejs</strong></p>
+<pre><code class="ejs">&lt;%- include(&apos;header&apos;) %&gt;
+  &lt;h1&gt;&lt;%= name.toUpperCase() %&gt;&lt;/h1&gt;
+  &lt;p&gt;hello, &lt;%= name %&gt;&lt;/p&gt;
+&lt;%- include(&apos;footer&apos;) %&gt;</code></pre>
+<p>我们将原来的 users.ejs 拆成出了 header.ejs 和 footer.ejs，并在 users.ejs 通过 ejs 内置的 include 方法引入，从而实现了跟以前一个模板文件相同的功能。</p>
+<blockquote>
+<p>小提示：拆分模板组件通常有两个好处：</p>
+<ol>
+<li>模板可复用，减少重复代码</li>
+<li>主模板结构清晰</li>
+</ol>
+</blockquote>
+<blockquote>
+<p>注意：要用 <code>&lt;%- include(&#39;header&#39;) %&gt;</code> 而不是 <code>&lt;%= include(&#39;header&#39;) %&gt;</code></p>
+</blockquote>
+<p>上一节：<a href="https://github.com/nswbmw/N-blog/blob/master/book/3.2%20%E8%B7%AF%E7%94%B1.md">3.2 路由</a></p>
+<p>下一节：<a href="https://github.com/nswbmw/N-blog/blob/master/book/3.4%20Express%20%E6%B5%85%E6%9E%90.md">3.4 Express 浅析</a></p>

@@ -1,0 +1,15 @@
+<p>前面讲到 express 有一个内置的错误处理逻辑，如果程序出错，会直接将错误栈返回并显示到页面上。如访问：<code>localhost:3000/posts/xxx/edit</code> 没有权限编辑的文章页，将会直接在页面中显示错误栈，如下：</p>
+<pre><code class="js"><span class="built_in">Error</span>: 权限不足
+    at /Users/nswbmw/Desktop/myblog/routes/posts.js:<span class="number">95</span>:<span class="number">15</span>
+    at &lt;anonymous&gt;
+    at process._tickCallback (internal/process/next_tick.js:<span class="number">188</span>:<span class="number">7</span>)</code></pre>
+<p>现在我们修改代码，实现复用页面通知。修改 index.js，在 <code>app.listen</code> 上面添加如下代码：</p>
+<p><strong>index.js</strong></p>
+<pre><code class="js">app.use(<span class="function"><span class="keyword">function</span> (<span class="params">err, req, res, next</span>) </span>{
+  <span class="built_in">console</span>.error(err)
+  req.flash(<span class="string">'error'</span>, err.message)
+  res.redirect(<span class="string">'/posts'</span>)
+})</code></pre>
+<p>这里我们实现了将错误信息用页面通知展示的功能，刷新页面将会跳转到主页并显示『权限不足』的红色通知。</p>
+<p>上一节：<a href="https://github.com/nswbmw/N-blog/blob/master/book/4.11%20404%20%E9%A1%B5%E9%9D%A2.md">4.11 404页面</a></p>
+<p>下一节：<a href="https://github.com/nswbmw/N-blog/blob/master/book/4.13%20%E6%97%A5%E5%BF%97.md">4.13 日志</a></p>

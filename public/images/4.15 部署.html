@@ -1,0 +1,167 @@
+<h2 id="4-15-1-申请-MLab"><a href="#4-15-1-申请-MLab" class="headerlink" title="4.15.1 申请 MLab"></a>4.15.1 申请 MLab</h2><p><a href="https://mlab.com">MLab</a> (前身是 MongoLab) 是一个 mongodb 云数据库提供商，我们可以选择 500MB 空间的免费套餐用来测试。注册成功后，点击右上角的 <code>Create New</code> 创建一个数据库（如: myblog），成功后点击进入到该数据库详情页，注意页面中有一行黄色的警告：</p>
+<pre><code>A database user is required to connect to this database. To create one now, visit the &apos;Users&apos; tab and click the &apos;Add database user&apos; button.</code></pre><p>每个数据库至少需要一个 user，所以我们点击 Users 下的 <code>Add database user</code> 创建一个用户。</p>
+<blockquote>
+<p>注意：不要选中 <code>Make read-only</code>，因为我们有写数据库的操作。</p>
+</blockquote>
+<p>最后分配给我们的类似下面的 mongodb url：</p>
+<pre><code>mongodb://&lt;dbuser&gt;:&lt;dbpassword&gt;@ds139327.mlab.com:39327/myblog</code></pre><p>如我创建的用户名和密码都为 myblog 的用户，新建 config/production.js，添加如下代码：</p>
+<p><strong>config/production.js</strong></p>
+<pre><code class="js"><span class="built_in">module</span>.exports = {
+  mongodb: <span class="string">'mongodb://myblog:myblog@ds139327.mlab.com:39327/myblog'</span>
+}</code></pre>
+<p>停止程序，然后以 production 配置启动程序:</p>
+<pre><code class="sh">npm i cross-env --save-dev <span class="comment"># 本地安装 cross-env</span>
+npm i cross-env -g <span class="comment"># 全局安装 cross-env</span>
+cross-env NODE_ENV=production supervisor index</code></pre>
+<blockquote>
+<p>注意：cross-env 用来兼容 Windows 系统和 Linux/Mac 系统设置环境变量的差异。</p>
+</blockquote>
+<h2 id="4-15-2-pm2"><a href="#4-15-2-pm2" class="headerlink" title="4.15.2 pm2"></a>4.15.2 pm2</h2><p>当我们的博客要部署到线上服务器时，不能单纯的靠 <code>node index</code> 或者 <code>supervisor index</code> 来启动了，因为我们断掉 SSH 连接后服务就终止了，这时我们就需要像 <a href="https://www.npmjs.com/package/pm2">pm2</a> 或者 <a href="https://www.npmjs.com/package/forever">forever</a> 这样的进程管理工具了。pm2 是 Node.js 下的生产环境进程管理工具，就是我们常说的进程守护工具，可以用来在生产环境中进行自动重启、日志记录、错误预警等等。以 pm2 为例，全局安装 pm2：</p>
+<pre><code class="sh">npm i pm2 -g</code></pre>
+<p>修改 package.json，添加 start 的命令：</p>
+<p><strong>package.json</strong></p>
+<pre><code class="json">&quot;scripts&quot;: {
+  &quot;test&quot;: &quot;istanbul cover _mocha&quot;,
+  &quot;start&quot;: &quot;cross-env NODE_ENV=production pm2 start index.js --name &#39;myblog&#39;&quot;
+}</code></pre>
+<p>然后运行 <code>npm start</code> 通过 pm2 启动程序，如下图所示 ：</p>
+<p><img src="/images/4.15.1.png" alt=""></p>
+<p>pm2 常用命令:</p>
+<ol>
+<li><code>pm2 start/stop</code>: 启动/停止程序</li>
+<li><code>pm2 reload/restart [id|name]</code>: 重启程序</li>
+<li><code>pm2 logs [id|name]</code>: 查看日志</li>
+<li><code>pm2 l/list</code>: 列出程序列表</li>
+</ol>
+<p>更多命令请使用 <code>pm2 -h</code> 查看。</p>
+<h2 id="4-15-2-部署到-Heroku"><a href="#4-15-2-部署到-Heroku" class="headerlink" title="4.15.2 部署到 Heroku"></a>4.15.2 部署到 Heroku</h2><p><a href="https://www.heroku.com">Heroku</a> 是一个支持多种编程语言的云服务平台，Heroku 也提供免费的基础套餐供开发者测试使用。现在，我们将论坛部署到 Heroku。</p>
+<blockquote>
+<p>注意：新版 heroku 会有填写信用卡的步骤，如果没有信用卡请跳过本节。</p>
+</blockquote>
+<p>首先，需要到 <a href="https://toolbelt.heroku.com/">https://toolbelt.heroku.com/</a> 下载安装 Heroku 的命令行工具包 toolbelt。然后登录（如果没有账号，请注册）到 Heroku 的 Dashboard，点击右上角 New -&gt; Create New App 创建一个应用。创建成功后运行：</p>
+<pre><code class="sh">heroku login</code></pre>
+<p>填写正确的 email 和 password 验证通过后，本地会产生一个 SSH public key。在部署到 Heroku 之前，我们需要对代码进行简单的修改。如下：</p>
+<p>1.删掉 .gitignore 中：</p>
+<pre><code>config/*
+!config/default.*</code></pre><p>因为我们无法登录到 Heroku 主机创建 production 配置文件，所以这里将 production 配置也上传到 Heroku。</p>
+<p>2.打开 index.js，将 <code>app.listen</code> 修改为：</p>
+<pre><code class="js"><span class="keyword">const</span> port = process.env.PORT || config.port
+app.listen(port, <span class="function"><span class="keyword">function</span> (<span class="params"></span>) </span>{
+  <span class="built_in">console</span>.log(<span class="string">`<span class="subst">${pkg.name}</span> listening on port <span class="subst">${port}</span>`</span>)
+})</code></pre>
+<p>因为 Heroku 会动态分配端口（通过环境变量 PORT 指定），所以不能用配置文件里写死的端口。</p>
+<p>3.修改 package.json，在 scripts 添加：</p>
+<pre><code class="json">&quot;heroku&quot;: &quot;NODE_ENV=production node index&quot;</code></pre>
+<p>在根目录下新建 Procfile 文件，添加如下内容：</p>
+<pre><code>web: npm run heroku</code></pre><p>Procfile 文件告诉 Heroku 该使用什么命令启动一个 web 服务。更多信息见：<a href="https://devcenter.heroku.com/articles/getting-started-with-nodejs">https://devcenter.heroku.com/articles/getting-started-with-nodejs</a>。</p>
+<p>然后输入以下命令：</p>
+<pre><code class="sh">git init
+heroku git:remote -a 你的应用名称
+git add .
+git commit -am <span class="string">"init"</span>
+git push heroku master</code></pre>
+<p>稍后，我们的论坛就部署成功了。使用：</p>
+<pre><code class="sh">heroku open</code></pre>
+<p>打开应用主页。如果出现 “Application error”，使用：</p>
+<pre><code class="sh">heroku logs</code></pre>
+<p>查看日志，调试完后 commit 并 push 到 heroku重新部署。</p>
+<h2 id="4-15-3-部署到-UCloud"><a href="#4-15-3-部署到-UCloud" class="headerlink" title="4.15.3 部署到 UCloud"></a>4.15.3 部署到 UCloud</h2><h3 id="创建主机"><a href="#创建主机" class="headerlink" title="创建主机"></a>创建主机</h3><ol>
+<li>注册 UCloud</li>
+<li>点击左侧的 <code>云主机</code>，然后点击 <code>创建主机</code>，统统选择最低配置</li>
+<li>右侧付费方式选择 <code>按时</code>（每小时），点击 <code>立即购买</code></li>
+<li>在支付确认页面，点击 <code>确认支付</code></li>
+</ol>
+<p>购买成功后回到主机管理列表，如下所示：</p>
+<p><img src="/images/4.15.2.png" alt=""></p>
+<blockquote>
+<p>注意：下面所有的 ip 都替换为你自己的外网 ip。</p>
+</blockquote>
+<h3 id="环境搭建与部署"><a href="#环境搭建与部署" class="headerlink" title="环境搭建与部署"></a>环境搭建与部署</h3><p>修改 config/production.js，将 port 修改为 80 端口：</p>
+<p><strong>config/production.js</strong></p>
+<pre><code class="js"><span class="built_in">module</span>.exports = {
+  port: <span class="number">80</span>,
+  mongodb: <span class="string">'mongodb://myblog:myblog@ds139327.mlab.com:39327/myblog'</span>
+}</code></pre>
+<p>登录主机，用刚才设置的密码：</p>
+<pre><code class="sh">ssh root@106.75.47.229</code></pre>
+<p>因为是 CentOS 系统，所以我选择使用 yum 安装，而不是下载源码编译安装：</p>
+<pre><code class="sh">yum install git <span class="comment">#安装git</span>
+yum install nodejs <span class="comment">#安装 Node.js</span>
+yum install npm <span class="comment">#安装 npm</span>
+
+npm i npm -g <span class="comment">#升级 npm</span>
+npm i pm2 -g <span class="comment">#安装 pm2</span>
+npm i n -g <span class="comment">#安装 n</span>
+n v8.9.1 <span class="comment">#安装 v8.9.1 版本的 Node.js</span>
+n use 8.9.1 <span class="comment">#使用 v8.9.1 版本的 Node.js</span>
+node -v</code></pre>
+<blockquote>
+<p>注意：如果 <code>node -v</code> 显示的不是 8.9.1，则断开 ssh，重新登录主机再试试。</p>
+</blockquote>
+<p>此时应该在 <code>/root</code> 目录下，运行以下命令：</p>
+<pre><code class="sh">git <span class="built_in">clone</span> https://github.com/nswbmw/N-blog.git myblog <span class="comment">#或在本机 myblog 目录下运行 rsync -av --exclude="node_modules" ./ root@106.75.47.229:/root/myblog</span>
+<span class="built_in">cd</span> myblog
+npm i
+npm start
+pm2 logs</code></pre>
+<blockquote>
+<p>注意：如果不想用 git 的形式将代码拉到云主机上，可以用 rsync 将本地的代码同步到你的 UCloud 主机上，如上所示。</p>
+</blockquote>
+<p>最后，访问你的公网 ip 地址试试吧，如下所示：</p>
+<p><img src="/images/4.15.3.png" alt=""></p>
+<blockquote>
+<p>小提示：因为我们选择的按时付费套餐，测试完成后，可在主机管理页面选择关闭主机，节约费用。</p>
+</blockquote>
+<h2 id="4-15-4-部署到阿里云"><a href="#4-15-4-部署到阿里云" class="headerlink" title="4.15.4 部署到阿里云"></a>4.15.4 部署到阿里云</h2><h3 id="创建主机-1"><a href="#创建主机-1" class="headerlink" title="创建主机"></a>创建主机</h3><ol>
+<li>注册/登录</li>
+<li>充值 100（因为我们选择『按量付费』，阿里云要求最低账户余额 &gt;= 100）</li>
+<li>进入『云服务器 ECS』</li>
+<li>点击『创建实例』</li>
+</ol>
+<p>进入创建实例页面，按下图选择配置：</p>
+<p><img src="/images/4.15.4.png" alt=""></p>
+<p>需要注意几点：</p>
+<ol>
+<li>计费方式：按量付费</li>
+<li>公网 ip 地址：分配</li>
+<li>安全组：选中开启 80 端口</li>
+<li>镜像：Ubuntu 16.04 64位</li>
+</ol>
+<p>点击『开通进入下一页』，选中：</p>
+<p><img src="/images/4.15.5.png" alt=""></p>
+<blockquote>
+<p>注意：这里我们只是演示，所以自动释放时间只设置了几个小时</p>
+</blockquote>
+<p>点击『去开通』创建成功，然后点击提示中的『管理控制台』进入 ECS 管理页，刚才创建的机器需要等待几分钟才会初始化成功。成功后如下所示：</p>
+<p><img src="/images/4.15.6.png" alt=""></p>
+<h3 id="环境搭建"><a href="#环境搭建" class="headerlink" title="环境搭建"></a>环境搭建</h3><p>复制创建的机器的公网 ip 地址，运行：</p>
+<pre><code class="sh">ssh root@39.106.134.66</code></pre>
+<p>输入刚才设置的密码登录远程主机。</p>
+<h4 id="安装-Node-js"><a href="#安装-Node-js" class="headerlink" title="安装 Node.js"></a>安装 Node.js</h4><p>我们下载编译好的 Node.js 压缩包，解压然后使用软连接。</p>
+<pre><code class="sh">wget https://nodejs.org/dist/v8.9.1/node-v8.9.1-linux-x64.tar.xz
+tar -xvf node-v8.9.1-linux-x64.tar.xz
+mv node-v8.9.1-linux-x64 nodejs
+ln -s ~/nodejs/bin/* /usr/<span class="built_in">local</span>/bin/
+node -v
+npm -v</code></pre>
+<h4 id="安装-MongoDB"><a href="#安装-MongoDB" class="headerlink" title="安装 MongoDB"></a>安装 MongoDB</h4><pre><code class="sh">wget https://fastdl.mongodb.org/linux/mongodb-linux-x86_64-ubuntu1604-3.4.10.tgz
+tar -xvf mongodb-linux-x86_64-ubuntu1604-3.4.10.tgz
+mv mongodb-linux-x86_64-ubuntu1604-3.4.10 mongodb
+ln -s ~/mongodb/bin/* /usr/<span class="built_in">local</span>/bin/
+mongod --version
+mongo --version
+mkdir mongodb/data
+mongod --dbpath=mongodb/data &amp;</code></pre>
+<h4 id="安装-Git"><a href="#安装-Git" class="headerlink" title="安装 Git"></a>安装 Git</h4><pre><code class="sh">apt-get update
+apt-get install git
+git <span class="built_in">clone</span> https://github.com/nswbmw/N-blog.git <span class="comment">#或者你的 GitHub blog 地址</span>
+<span class="built_in">cd</span> N-blog
+npm i
+vim config/default.js <span class="comment">#修改端口 3000-&gt;80</span>
+node index</code></pre>
+<p>此时，浏览器中访问你的机器的公网 ip 试试吧。</p>
+<h4 id="使用-PM2-启动"><a href="#使用-PM2-启动" class="headerlink" title="使用 PM2 启动"></a>使用 PM2 启动</h4><pre><code class="sh">npm i pm2 -g
+ln -s ~/nodejs/bin/* /usr/<span class="built_in">local</span>/bin/
+pm2 start index.js --name=<span class="string">"myblog"</span></code></pre>
+<p>这里我们使用 pm2 启动博客，所以关掉终端后博客仍然在运行。</p>
+<p>上一节：<a href="https://github.com/nswbmw/N-blog/blob/master/book/4.14%20%E6%B5%8B%E8%AF%95.md">4.14 测试</a></p>

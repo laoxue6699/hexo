@@ -1,0 +1,434 @@
+<h2 id="4-9-1-文章模型设计"><a href="#4-9-1-文章模型设计" class="headerlink" title="4.9.1 文章模型设计"></a>4.9.1 文章模型设计</h2><p>我们只存储文章的作者 id、标题、正文和点击量这几个字段，对应修改 lib/mongo.js，添加如下代码：</p>
+<p><strong>lib/mongo.js</strong></p>
+<pre><code class="js">exports.Post = mongolass.model(<span class="string">'Post'</span>, {
+  author: { <span class="attr">type</span>: Mongolass.Types.ObjectId, <span class="attr">required</span>: <span class="literal">true</span> },
+  title: { <span class="attr">type</span>: <span class="string">'string'</span>, <span class="attr">required</span>: <span class="literal">true</span> },
+  content: { <span class="attr">type</span>: <span class="string">'string'</span>, <span class="attr">required</span>: <span class="literal">true</span> },
+  pv: { <span class="attr">type</span>: <span class="string">'number'</span>, <span class="attr">default</span>: <span class="number">0</span> }
+})
+exports.Post.index({ <span class="attr">author</span>: <span class="number">1</span>, <span class="attr">_id</span>: <span class="number">-1</span> }).exec()<span class="comment">// 按创建时间降序查看用户的文章列表</span></code></pre>
+<h2 id="4-9-2-发表文章"><a href="#4-9-2-发表文章" class="headerlink" title="4.9.2 发表文章"></a>4.9.2 发表文章</h2><p>现在我们来实现发表文章的功能。首先创建发表文章页，新建 views/create.ejs，添加如下代码：</p>
+<p><strong>views/create.ejs</strong></p>
+<pre><code class="ejs">&lt;%- include(&apos;header&apos;) %&gt;
+
+&lt;div class=&quot;ui grid&quot;&gt;
+  &lt;div class=&quot;four wide column&quot;&gt;
+    &lt;a class=&quot;avatar avatar-link&quot;
+       href=&quot;/posts?author=&lt;%= user._id %&gt;&quot;
+       data-title=&quot;&lt;%= user.name %&gt; | &lt;%= ({m: &apos;男&apos;, f: &apos;女&apos;, x: &apos;保密&apos;})[user.gender] %&gt;&quot;
+       data-content=&quot;&lt;%= user.bio %&gt;&quot;&gt;
+      &lt;img class=&quot;avatar&quot; src=&quot;/img/&lt;%= user.avatar %&gt;&quot;&gt;
+    &lt;/a&gt;
+  &lt;/div&gt;
+
+  &lt;div class=&quot;eight wide column&quot;&gt;
+    &lt;form class=&quot;ui form segment&quot; method=&quot;post&quot;&gt;
+      &lt;div class=&quot;field required&quot;&gt;
+        &lt;label&gt;标题&lt;/label&gt;
+        &lt;input type=&quot;text&quot; name=&quot;title&quot;&gt;
+      &lt;/div&gt;
+      &lt;div class=&quot;field required&quot;&gt;
+        &lt;label&gt;内容&lt;/label&gt;
+        &lt;textarea name=&quot;content&quot; rows=&quot;15&quot;&gt;&lt;/textarea&gt;
+      &lt;/div&gt;
+      &lt;input type=&quot;submit&quot; class=&quot;ui button&quot; value=&quot;发布&quot;&gt;
+    &lt;/form&gt;
+  &lt;/div&gt;
+&lt;/div&gt;
+
+&lt;%- include(&apos;footer&apos;) %&gt;</code></pre>
+<p>修改 routes/posts.js，将：</p>
+<pre><code class="js"><span class="comment">// GET /posts/create 发表文章页</span>
+router.get(<span class="string">'/create'</span>, checkLogin, <span class="function"><span class="keyword">function</span> (<span class="params">req, res, next</span>) </span>{
+  res.send(<span class="string">'发表文章页'</span>)
+})</code></pre>
+<p>修改为：</p>
+<pre><code class="js"><span class="comment">// GET /posts/create 发表文章页</span>
+router.get(<span class="string">'/create'</span>, checkLogin, <span class="function"><span class="keyword">function</span> (<span class="params">req, res, next</span>) </span>{
+  res.render(<span class="string">'create'</span>)
+})</code></pre>
+<p>登录成功状态，点击右上角『发表文章』试下吧。</p>
+<p>发表文章页已经完成了，接下来新建 models/posts.js 用来存放与文章操作相关的代码：</p>
+<p><strong>models/posts.js</strong></p>
+<pre><code class="js"><span class="keyword">const</span> Post = <span class="built_in">require</span>(<span class="string">'../lib/mongo'</span>).Post
+
+<span class="built_in">module</span>.exports = {
+  <span class="comment">// 创建一篇文章</span>
+  create: <span class="function"><span class="keyword">function</span> <span class="title">create</span> (<span class="params">post</span>) </span>{
+    <span class="keyword">return</span> Post.create(post).exec()
+  }
+}</code></pre>
+<p>修改 routes/posts.js，在文件上方引入 PostModel：</p>
+<p><strong>routes/posts.js</strong></p>
+<pre><code class="js"><span class="keyword">const</span> PostModel = <span class="built_in">require</span>(<span class="string">'../models/posts'</span>)</code></pre>
+<p>将：</p>
+<pre><code class="js"><span class="comment">// POST /posts/create 发表一篇文章</span>
+router.post(<span class="string">'/create'</span>, checkLogin, <span class="function"><span class="keyword">function</span> (<span class="params">req, res, next</span>) </span>{
+  res.send(<span class="string">'发表文章'</span>)
+})</code></pre>
+<p>修改为：</p>
+<pre><code class="js"><span class="comment">// POST /posts/create 发表一篇文章</span>
+router.post(<span class="string">'/create'</span>, checkLogin, <span class="function"><span class="keyword">function</span> (<span class="params">req, res, next</span>) </span>{
+  <span class="keyword">const</span> author = req.session.user._id
+  <span class="keyword">const</span> title = req.fields.title
+  <span class="keyword">const</span> content = req.fields.content
+
+  <span class="comment">// 校验参数</span>
+  <span class="keyword">try</span> {
+    <span class="keyword">if</span> (!title.length) {
+      <span class="keyword">throw</span> <span class="keyword">new</span> <span class="built_in">Error</span>(<span class="string">'请填写标题'</span>)
+    }
+    <span class="keyword">if</span> (!content.length) {
+      <span class="keyword">throw</span> <span class="keyword">new</span> <span class="built_in">Error</span>(<span class="string">'请填写内容'</span>)
+    }
+  } <span class="keyword">catch</span> (e) {
+    req.flash(<span class="string">'error'</span>, e.message)
+    <span class="keyword">return</span> res.redirect(<span class="string">'back'</span>)
+  }
+
+  <span class="keyword">let</span> post = {
+    author: author,
+    title: title,
+    content: content
+  }
+
+  PostModel.create(post)
+    .then(<span class="function"><span class="keyword">function</span> (<span class="params">result</span>) </span>{
+      <span class="comment">// 此 post 是插入 mongodb 后的值，包含 _id</span>
+      post = result.ops[<span class="number">0</span>]
+      req.flash(<span class="string">'success'</span>, <span class="string">'发表成功'</span>)
+      <span class="comment">// 发表成功后跳转到该文章页</span>
+      res.redirect(<span class="string">`/posts/<span class="subst">${post._id}</span>`</span>)
+    })
+    .catch(next)
+})</code></pre>
+<p>这里校验了上传的表单字段，并将文章信息插入数据库，成功后跳转到该文章页并显示『发表成功』的通知，失败后请求会进入错误处理函数。</p>
+<p>现在刷新页面（登录情况下），点击右上角 <code>发表文章</code> 试试吧，发表成功后跳转到了文章页但并没有任何内容，下面我们就来实现文章页及主页。</p>
+<h2 id="4-9-3-主页与文章页"><a href="#4-9-3-主页与文章页" class="headerlink" title="4.9.3 主页与文章页"></a>4.9.3 主页与文章页</h2><p>现在我们来实现主页及文章页。修改 models/posts.js 如下：</p>
+<p><strong>models/posts.js</strong></p>
+<pre><code class="js"><span class="keyword">const</span> marked = <span class="built_in">require</span>(<span class="string">'marked'</span>)
+<span class="keyword">const</span> Post = <span class="built_in">require</span>(<span class="string">'../lib/mongo'</span>).Post
+
+<span class="comment">// 将 post 的 content 从 markdown 转换成 html</span>
+Post.plugin(<span class="string">'contentToHtml'</span>, {
+  afterFind: <span class="function"><span class="keyword">function</span> (<span class="params">posts</span>) </span>{
+    <span class="keyword">return</span> posts.map(<span class="function"><span class="keyword">function</span> (<span class="params">post</span>) </span>{
+      post.content = marked(post.content)
+      <span class="keyword">return</span> post
+    })
+  },
+  afterFindOne: <span class="function"><span class="keyword">function</span> (<span class="params">post</span>) </span>{
+    <span class="keyword">if</span> (post) {
+      post.content = marked(post.content)
+    }
+    <span class="keyword">return</span> post
+  }
+})
+
+<span class="built_in">module</span>.exports = {
+  <span class="comment">// 创建一篇文章</span>
+  create: <span class="function"><span class="keyword">function</span> <span class="title">create</span> (<span class="params">post</span>) </span>{
+    <span class="keyword">return</span> Post.create(post).exec()
+  },
+
+  <span class="comment">// 通过文章 id 获取一篇文章</span>
+  getPostById: <span class="function"><span class="keyword">function</span> <span class="title">getPostById</span> (<span class="params">postId</span>) </span>{
+    <span class="keyword">return</span> Post
+      .findOne({ <span class="attr">_id</span>: postId })
+      .populate({ <span class="attr">path</span>: <span class="string">'author'</span>, <span class="attr">model</span>: <span class="string">'User'</span> })
+      .addCreatedAt()
+      .contentToHtml()
+      .exec()
+  },
+
+  <span class="comment">// 按创建时间降序获取所有用户文章或者某个特定用户的所有文章</span>
+  getPosts: <span class="function"><span class="keyword">function</span> <span class="title">getPosts</span> (<span class="params">author</span>) </span>{
+    <span class="keyword">const</span> query = {}
+    <span class="keyword">if</span> (author) {
+      query.author = author
+    }
+    <span class="keyword">return</span> Post
+      .find(query)
+      .populate({ <span class="attr">path</span>: <span class="string">'author'</span>, <span class="attr">model</span>: <span class="string">'User'</span> })
+      .sort({ <span class="attr">_id</span>: <span class="number">-1</span> })
+      .addCreatedAt()
+      .contentToHtml()
+      .exec()
+  },
+
+  <span class="comment">// 通过文章 id 给 pv 加 1</span>
+  incPv: <span class="function"><span class="keyword">function</span> <span class="title">incPv</span> (<span class="params">postId</span>) </span>{
+    <span class="keyword">return</span> Post
+      .update({ <span class="attr">_id</span>: postId }, { <span class="attr">$inc</span>: { <span class="attr">pv</span>: <span class="number">1</span> } })
+      .exec()
+  }
+}</code></pre>
+<p>需要讲解两点：</p>
+<ol>
+<li>我们使用了 markdown 解析文章的内容，所以在发表文章的时候可使用 markdown 语法（如插入链接、图片等等），关于 markdown 的使用请参考： <a href="http://wowubuntu.com/markdown/">Markdown 语法说明</a>。</li>
+<li>我们在 PostModel 上注册了 <code>contentToHtml</code>，而 <code>addCreatedAt</code> 是在 lib/mongo.js 中 mongolass 上注册的。也就是说 <code>contentToHtml</code> 只针对 PostModel 有效，而 <code>addCreatedAt</code> 对所有 Model 都有效。</li>
+</ol>
+<p>接下来完成主页的模板，修改 views/posts.ejs 如下：</p>
+<p><strong>views/posts.ejs</strong></p>
+<pre><code class="ejs">&lt;%- include(&apos;header&apos;) %&gt;
+
+&lt;% posts.forEach(function (post) { %&gt;
+  &lt;%- include(&apos;components/post-content&apos;, { post: post }) %&gt;
+&lt;% }) %&gt;
+
+&lt;%- include(&apos;footer&apos;) %&gt;</code></pre>
+<p>新建 views/components/post-content.ejs 用来存放单篇文章的模板片段：</p>
+<p><strong>views/components/post-content.ejs</strong></p>
+<pre><code class="ejs">&lt;div class=&quot;post-content&quot;&gt;
+  &lt;div class=&quot;ui grid&quot;&gt;
+    &lt;div class=&quot;four wide column&quot;&gt;
+      &lt;a class=&quot;avatar avatar-link&quot;
+         href=&quot;/posts?author=&lt;%= post.author._id %&gt;&quot;
+         data-title=&quot;&lt;%= post.author.name %&gt; | &lt;%= ({m: &apos;男&apos;, f: &apos;女&apos;, x: &apos;保密&apos;})[post.author.gender] %&gt;&quot;
+         data-content=&quot;&lt;%= post.author.bio %&gt;&quot;&gt;
+        &lt;img class=&quot;avatar&quot; src=&quot;/img/&lt;%= post.author.avatar %&gt;&quot;&gt;
+      &lt;/a&gt;
+    &lt;/div&gt;
+
+    &lt;div class=&quot;eight wide column&quot;&gt;
+      &lt;div class=&quot;ui segment&quot;&gt;
+        &lt;h3&gt;&lt;a href=&quot;/posts/&lt;%= post._id %&gt;&quot;&gt;&lt;%= post.title %&gt;&lt;/a&gt;&lt;/h3&gt;
+        &lt;pre&gt;&lt;%- post.content %&gt;&lt;/pre&gt;
+        &lt;div&gt;
+          &lt;span class=&quot;tag&quot;&gt;&lt;%= post.created_at %&gt;&lt;/span&gt;
+          &lt;span class=&quot;tag right&quot;&gt;
+            &lt;span&gt;浏览(&lt;%= post.pv || 0 %&gt;)&lt;/span&gt;
+            &lt;span&gt;留言(&lt;%= post.commentsCount || 0 %&gt;)&lt;/span&gt;
+
+            &lt;% if (user &amp;&amp; post.author._id &amp;&amp; user._id.toString() === post.author._id.toString()) { %&gt;
+              &lt;div class=&quot;ui inline dropdown&quot;&gt;
+                &lt;div class=&quot;text&quot;&gt;&lt;/div&gt;
+                &lt;i class=&quot;dropdown icon&quot;&gt;&lt;/i&gt;
+                &lt;div class=&quot;menu&quot;&gt;
+                  &lt;div class=&quot;item&quot;&gt;&lt;a href=&quot;/posts/&lt;%= post._id %&gt;/edit&quot;&gt;编辑&lt;/a&gt;&lt;/div&gt;
+                  &lt;div class=&quot;item&quot;&gt;&lt;a href=&quot;/posts/&lt;%= post._id %&gt;/remove&quot;&gt;删除&lt;/a&gt;&lt;/div&gt;
+                &lt;/div&gt;
+              &lt;/div&gt;
+            &lt;% } %&gt;
+
+          &lt;/span&gt;
+        &lt;/div&gt;
+      &lt;/div&gt;
+    &lt;/div&gt;
+  &lt;/div&gt;
+&lt;/div&gt;</code></pre>
+<blockquote>
+<p>注意：我们用了 <code>&lt;%- post.content %&gt;</code>，而不是 <code>&lt;%= post.content %&gt;</code>，因为 post.content 是 markdown 转换后的 html 字符串。</p>
+</blockquote>
+<p>修改 routes/posts.js，将：</p>
+<p><strong>routes/posts.js</strong></p>
+<pre><code class="js">router.get(<span class="string">'/'</span>, <span class="function"><span class="keyword">function</span> (<span class="params">req, res, next</span>) </span>{
+  res.render(<span class="string">'posts'</span>)
+})</code></pre>
+<p>修改为：</p>
+<pre><code class="js">router.get(<span class="string">'/'</span>, <span class="function"><span class="keyword">function</span> (<span class="params">req, res, next</span>) </span>{
+  <span class="keyword">const</span> author = req.query.author
+
+  PostModel.getPosts(author)
+    .then(<span class="function"><span class="keyword">function</span> (<span class="params">posts</span>) </span>{
+      res.render(<span class="string">'posts'</span>, {
+        posts: posts
+      })
+    })
+    .catch(next)
+})</code></pre>
+<blockquote>
+<p>注意：主页与用户页通过 url 中的 author 区分。</p>
+</blockquote>
+<p>现在完成了主页与用户页，访问 <code>http://localhost:3000/posts</code> 试试吧，现在已经将我们之前创建的文章显示出来了，尝试点击用户的头像看看效果。</p>
+<p>接下来完成文章详情页。新建 views/post.ejs，添加如下代码：</p>
+<p><strong>views/post.ejs</strong></p>
+<pre><code class="ejs">&lt;%- include(&apos;header&apos;) %&gt;
+&lt;%- include(&apos;components/post-content&apos;) %&gt;
+&lt;%- include(&apos;footer&apos;) %&gt;</code></pre>
+<p>打开 routes/posts.js，将：</p>
+<p><strong>routes/posts.js</strong></p>
+<pre><code class="js"><span class="comment">// GET /posts/:postId 单独一篇的文章页</span>
+router.get(<span class="string">'/:postId'</span>, <span class="function"><span class="keyword">function</span> (<span class="params">req, res, next</span>) </span>{
+  res.send(<span class="string">'文章详情页'</span>)
+})</code></pre>
+<p>修改为：</p>
+<pre><code class="js"><span class="comment">// GET /posts/:postId 单独一篇的文章页</span>
+router.get(<span class="string">'/:postId'</span>, <span class="function"><span class="keyword">function</span> (<span class="params">req, res, next</span>) </span>{
+  <span class="keyword">const</span> postId = req.params.postId
+
+  <span class="built_in">Promise</span>.all([
+    PostModel.getPostById(postId), <span class="comment">// 获取文章信息</span>
+    PostModel.incPv(postId)<span class="comment">// pv 加 1</span>
+  ])
+    .then(<span class="function"><span class="keyword">function</span> (<span class="params">result</span>) </span>{
+      <span class="keyword">const</span> post = result[<span class="number">0</span>]
+      <span class="keyword">if</span> (!post) {
+        <span class="keyword">throw</span> <span class="keyword">new</span> <span class="built_in">Error</span>(<span class="string">'该文章不存在'</span>)
+      }
+
+      res.render(<span class="string">'post'</span>, {
+        post: post
+      })
+    })
+    .catch(next)
+})</code></pre>
+<p>现在刷新浏览器，点击文章的标题看看浏览器地址的变化吧。</p>
+<blockquote>
+<p>注意：浏览器地址有变化，但页面看不出区别来（因为页面布局一样），后面我们添加留言功能后就能看出区别来了。</p>
+</blockquote>
+<h2 id="4-9-4-编辑与删除文章"><a href="#4-9-4-编辑与删除文章" class="headerlink" title="4.9.4 编辑与删除文章"></a>4.9.4 编辑与删除文章</h2><p>现在我们来完成编辑与删除文章的功能。修改 models/posts.js，在 module.exports 对象上添加如下 3 个方法：</p>
+<p><strong>models/posts.js</strong></p>
+<pre><code class="js"><span class="comment">// 通过文章 id 获取一篇原生文章（编辑文章）</span>
+getRawPostById: <span class="function"><span class="keyword">function</span> <span class="title">getRawPostById</span> (<span class="params">postId</span>) </span>{
+  <span class="keyword">return</span> Post
+    .findOne({ <span class="attr">_id</span>: postId })
+    .populate({ <span class="attr">path</span>: <span class="string">'author'</span>, <span class="attr">model</span>: <span class="string">'User'</span> })
+    .exec()
+},
+
+<span class="comment">// 通过文章 id 更新一篇文章</span>
+updatePostById: <span class="function"><span class="keyword">function</span> <span class="title">updatePostById</span> (<span class="params">postId, data</span>) </span>{
+  <span class="keyword">return</span> Post.update({ <span class="attr">_id</span>: postId }, { <span class="attr">$set</span>: data }).exec()
+},
+
+<span class="comment">// 通过文章 id 删除一篇文章</span>
+delPostById: <span class="function"><span class="keyword">function</span> <span class="title">delPostById</span> (<span class="params">postId</span>) </span>{
+  <span class="keyword">return</span> Post.deleteOne({ <span class="attr">_id</span>: postId }).exec()
+}</code></pre>
+<blockquote>
+<p>注意：不要忘了在适当位置添加逗号，如 incPv 的结束大括号后。</p>
+</blockquote>
+<blockquote>
+<p>注意：我们通过新函数 <code>getRawPostById</code> 用来获取文章原生的内容（编辑页面用），而不是用 <code>getPostById</code> 返回将 markdown 转换成 html 后的内容。</p>
+</blockquote>
+<p>新建编辑文章页 views/edit.ejs，添加如下代码：</p>
+<p><strong>views/edit.ejs</strong></p>
+<pre><code class="js">&lt;%- include(<span class="string">'header'</span>) %&gt;
+
+&lt;div <span class="class"><span class="keyword">class</span></span>=<span class="string">"ui grid"</span>&gt;
+  &lt;div <span class="class"><span class="keyword">class</span></span>=<span class="string">"four wide column"</span>&gt;
+    &lt;a <span class="class"><span class="keyword">class</span></span>=<span class="string">"avatar"</span>
+       href=<span class="string">"/posts?author=&lt;%= user._id %&gt;"</span>
+       data-title=<span class="string">"&lt;%= user.name %&gt; | &lt;%= ({m: '男', f: '女', x: '保密'})[user.gender] %&gt;"</span>
+       data-content=<span class="string">"&lt;%= user.bio %&gt;"</span>&gt;
+      &lt;img <span class="class"><span class="keyword">class</span></span>=<span class="string">"avatar"</span> src=<span class="string">"/img/&lt;%= user.avatar %&gt;"</span>&gt;
+    &lt;<span class="regexp">/a&gt;</span>
+<span class="regexp">  &lt;/</span>div&gt;
+
+  &lt;div <span class="class"><span class="keyword">class</span></span>=<span class="string">"eight wide column"</span>&gt;
+    &lt;form <span class="class"><span class="keyword">class</span></span>=<span class="string">"ui form segment"</span> method=<span class="string">"post"</span> action=<span class="string">"/posts/&lt;%= post._id %&gt;/edit"</span>&gt;
+      &lt;div <span class="class"><span class="keyword">class</span></span>=<span class="string">"field required"</span>&gt;
+        &lt;label&gt;标题&lt;<span class="regexp">/label&gt;</span>
+<span class="regexp">        &lt;input type="text" name="title" value="&lt;%= post.title %&gt;"&gt;</span>
+<span class="regexp">      &lt;/</span>div&gt;
+      &lt;div <span class="class"><span class="keyword">class</span></span>=<span class="string">"field required"</span>&gt;
+        &lt;label&gt;内容&lt;<span class="regexp">/label&gt;</span>
+<span class="regexp">        &lt;textarea name="content" rows="15"&gt;&lt;%= post.content %&gt;&lt;/</span>textarea&gt;
+      &lt;<span class="regexp">/div&gt;</span>
+<span class="regexp">      &lt;input type="submit" class="ui button" value="发布"&gt;</span>
+<span class="regexp">    &lt;/</span>form&gt;
+  &lt;<span class="regexp">/div&gt;</span>
+<span class="regexp">&lt;/</span>div&gt;
+
+&lt;%- include(<span class="string">'footer'</span>) %&gt;</code></pre>
+<p>修改 routes/posts.js，将：</p>
+<p><strong>routes/posts.js</strong></p>
+<pre><code class="js"><span class="comment">// GET /posts/:postId/edit 更新文章页</span>
+router.get(<span class="string">'/:postId/edit'</span>, checkLogin, <span class="function"><span class="keyword">function</span> (<span class="params">req, res, next</span>) </span>{
+  res.send(<span class="string">'更新文章页'</span>)
+})
+
+<span class="comment">// POST /posts/:postId/edit 更新一篇文章</span>
+router.post(<span class="string">'/:postId/edit'</span>, checkLogin, <span class="function"><span class="keyword">function</span> (<span class="params">req, res, next</span>) </span>{
+  res.send(<span class="string">'更新文章'</span>)
+})
+
+<span class="comment">// GET /posts/:postId/remove 删除一篇文章</span>
+router.get(<span class="string">'/:postId/remove'</span>, checkLogin, <span class="function"><span class="keyword">function</span> (<span class="params">req, res, next</span>) </span>{
+  res.send(<span class="string">'删除文章'</span>)
+})</code></pre>
+<p>修改为：</p>
+<pre><code class="js"><span class="comment">// GET /posts/:postId/edit 更新文章页</span>
+router.get(<span class="string">'/:postId/edit'</span>, checkLogin, <span class="function"><span class="keyword">function</span> (<span class="params">req, res, next</span>) </span>{
+  <span class="keyword">const</span> postId = req.params.postId
+  <span class="keyword">const</span> author = req.session.user._id
+
+  PostModel.getRawPostById(postId)
+    .then(<span class="function"><span class="keyword">function</span> (<span class="params">post</span>) </span>{
+      <span class="keyword">if</span> (!post) {
+        <span class="keyword">throw</span> <span class="keyword">new</span> <span class="built_in">Error</span>(<span class="string">'该文章不存在'</span>)
+      }
+      <span class="keyword">if</span> (author.toString() !== post.author._id.toString()) {
+        <span class="keyword">throw</span> <span class="keyword">new</span> <span class="built_in">Error</span>(<span class="string">'权限不足'</span>)
+      }
+      res.render(<span class="string">'edit'</span>, {
+        post: post
+      })
+    })
+    .catch(next)
+})
+
+<span class="comment">// POST /posts/:postId/edit 更新一篇文章</span>
+router.post(<span class="string">'/:postId/edit'</span>, checkLogin, <span class="function"><span class="keyword">function</span> (<span class="params">req, res, next</span>) </span>{
+  <span class="keyword">const</span> postId = req.params.postId
+  <span class="keyword">const</span> author = req.session.user._id
+  <span class="keyword">const</span> title = req.fields.title
+  <span class="keyword">const</span> content = req.fields.content
+
+  <span class="comment">// 校验参数</span>
+  <span class="keyword">try</span> {
+    <span class="keyword">if</span> (!title.length) {
+      <span class="keyword">throw</span> <span class="keyword">new</span> <span class="built_in">Error</span>(<span class="string">'请填写标题'</span>)
+    }
+    <span class="keyword">if</span> (!content.length) {
+      <span class="keyword">throw</span> <span class="keyword">new</span> <span class="built_in">Error</span>(<span class="string">'请填写内容'</span>)
+    }
+  } <span class="keyword">catch</span> (e) {
+    req.flash(<span class="string">'error'</span>, e.message)
+    <span class="keyword">return</span> res.redirect(<span class="string">'back'</span>)
+  }
+
+  PostModel.getRawPostById(postId)
+    .then(<span class="function"><span class="keyword">function</span> (<span class="params">post</span>) </span>{
+      <span class="keyword">if</span> (!post) {
+        <span class="keyword">throw</span> <span class="keyword">new</span> <span class="built_in">Error</span>(<span class="string">'文章不存在'</span>)
+      }
+      <span class="keyword">if</span> (post.author._id.toString() !== author.toString()) {
+        <span class="keyword">throw</span> <span class="keyword">new</span> <span class="built_in">Error</span>(<span class="string">'没有权限'</span>)
+      }
+      PostModel.updatePostById(postId, { <span class="attr">title</span>: title, <span class="attr">content</span>: content })
+        .then(<span class="function"><span class="keyword">function</span> (<span class="params"></span>) </span>{
+          req.flash(<span class="string">'success'</span>, <span class="string">'编辑文章成功'</span>)
+          <span class="comment">// 编辑成功后跳转到上一页</span>
+          res.redirect(<span class="string">`/posts/<span class="subst">${postId}</span>`</span>)
+        })
+        .catch(next)
+    })
+})
+
+<span class="comment">// GET /posts/:postId/remove 删除一篇文章</span>
+router.get(<span class="string">'/:postId/remove'</span>, checkLogin, <span class="function"><span class="keyword">function</span> (<span class="params">req, res, next</span>) </span>{
+  <span class="keyword">const</span> postId = req.params.postId
+  <span class="keyword">const</span> author = req.session.user._id
+
+  PostModel.getRawPostById(postId)
+    .then(<span class="function"><span class="keyword">function</span> (<span class="params">post</span>) </span>{
+      <span class="keyword">if</span> (!post) {
+        <span class="keyword">throw</span> <span class="keyword">new</span> <span class="built_in">Error</span>(<span class="string">'文章不存在'</span>)
+      }
+      <span class="keyword">if</span> (post.author._id.toString() !== author.toString()) {
+        <span class="keyword">throw</span> <span class="keyword">new</span> <span class="built_in">Error</span>(<span class="string">'没有权限'</span>)
+      }
+      PostModel.delPostById(postId)
+        .then(<span class="function"><span class="keyword">function</span> (<span class="params"></span>) </span>{
+          req.flash(<span class="string">'success'</span>, <span class="string">'删除文章成功'</span>)
+          <span class="comment">// 删除成功后跳转到主页</span>
+          res.redirect(<span class="string">'/posts'</span>)
+        })
+        .catch(next)
+    })
+})</code></pre>
+<p>现在刷新主页，点击文章右下角的小三角，编辑文章和删除文章试试吧。</p>
+<p>上一节：<a href="https://github.com/nswbmw/N-blog/blob/master/book/4.8%20%E7%99%BB%E5%87%BA%E4%B8%8E%E7%99%BB%E5%BD%95.md">4.8 登出与登录</a></p>
+<p>下一节：<a href="https://github.com/nswbmw/N-blog/blob/master/book/4.10%20%E7%95%99%E8%A8%80.md">4.10 留言</a></p>

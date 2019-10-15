@@ -1,0 +1,261 @@
+<h2 id="4-4-1-功能与路由设计"><a href="#4-4-1-功能与路由设计" class="headerlink" title="4.4.1 功能与路由设计"></a>4.4.1 功能与路由设计</h2><p>在开发博客之前，我们首先需要明确博客要实现哪些功能。由于本教程面向初学者，所以只实现了博客最基本的功能，其余的功能（如归档、标签、分页等等）读者可自行实现。</p>
+<p>功能及路由设计如下：</p>
+<ol>
+<li>注册<ol>
+<li>注册页：<code>GET /signup</code></li>
+<li>注册（包含上传头像）：<code>POST /signup</code></li>
+</ol>
+</li>
+<li>登录<ol>
+<li>登录页：<code>GET /signin</code></li>
+<li>登录：<code>POST /signin</code></li>
+</ol>
+</li>
+<li>登出：<code>GET /signout</code></li>
+<li>查看文章<ol>
+<li>主页：<code>GET /posts</code></li>
+<li>个人主页：<code>GET /posts?author=xxx</code></li>
+<li>查看一篇文章（包含留言）：<code>GET /posts/:postId</code></li>
+</ol>
+</li>
+<li>发表文章<ol>
+<li>发表文章页：<code>GET /posts/create</code></li>
+<li>发表文章：<code>POST /posts/create</code></li>
+</ol>
+</li>
+<li>修改文章<ol>
+<li>修改文章页：<code>GET /posts/:postId/edit</code></li>
+<li>修改文章：<code>POST /posts/:postId/edit</code></li>
+</ol>
+</li>
+<li>删除文章：<code>GET /posts/:postId/remove</code></li>
+<li>留言<ol>
+<li>创建留言：<code>POST /comments</code></li>
+<li>删除留言：<code>GET /comments/:commentId/remove</code></li>
+</ol>
+</li>
+</ol>
+<p>由于我们博客页面是后端渲染的，所以只通过简单的 <code>&lt;a&gt;(GET)</code> 和 <code>&lt;form&gt;(POST)</code> 与后端进行交互，如果使用 jQuery 或者其他前端框架（如 Angular、Vue、React 等等）可通过 Ajax 与后端交互，则 api 的设计应尽量遵循 Restful 风格。</p>
+<h4 id="Restful"><a href="#Restful" class="headerlink" title="Restful"></a>Restful</h4><p>Restful 是一种 api 的设计风格，提出了一组 api 的设计原则和约束条件。</p>
+<p>如上面删除文章的路由设计：</p>
+<pre><code>GET /posts/:postId/remove</code></pre><p>Restful 风格的设计：</p>
+<pre><code>DELETE /posts/:postId</code></pre><p>可以看出，Restful 风格的 api 更直观且优雅。</p>
+<p>更多阅读：</p>
+<ol>
+<li><a href="http://www.ruanyifeng.com/blog/2011/09/restful">http://www.ruanyifeng.com/blog/2011/09/restful</a></li>
+<li><a href="http://www.ruanyifeng.com/blog/2014/05/restful_api.html">http://www.ruanyifeng.com/blog/2014/05/restful_api.html</a></li>
+<li><a href="http://developer.51cto.com/art/200908/141825.htm">http://developer.51cto.com/art/200908/141825.htm</a></li>
+<li><a href="http://blog.jobbole.com/41233/">http://blog.jobbole.com/41233/</a></li>
+</ol>
+<h2 id="4-4-2-会话"><a href="#4-4-2-会话" class="headerlink" title="4.4.2 会话"></a>4.4.2 会话</h2><p>由于 HTTP 协议是无状态的协议，所以服务端需要记录用户的状态时，就需要用某种机制来识别具体的用户，这个机制就是会话（Session）。</p>
+<h4 id="cookie-与-session-的区别"><a href="#cookie-与-session-的区别" class="headerlink" title="cookie 与 session 的区别"></a>cookie 与 session 的区别</h4><ol>
+<li>cookie 存储在浏览器（有大小限制），session 存储在服务端（没有大小限制）</li>
+<li>通常 session 的实现是基于 cookie 的，session id 存储于 cookie 中</li>
+<li>session 更安全，cookie 可以直接在浏览器查看甚至编辑</li>
+</ol>
+<p>更多 session 的资料，参考：<a href="https://www.zhihu.com/question/19786827">https://www.zhihu.com/question/19786827</a></p>
+<p>我们通过引入 express-session 中间件实现对会话的支持：</p>
+<pre><code class="js">app.use(session(options))</code></pre>
+<p>session 中间件会在 req 上添加 session 对象，即 req.session 初始值为 <code>{}</code>，当我们登录后设置 <code>req.session.user = 用户信息</code>，返回浏览器的头信息中会带上 <code>set-cookie</code> 将 session id 写到浏览器 cookie 中，那么该用户下次请求时，通过带上来的 cookie 中的 session id 我们就可以查找到该用户，并将用户信息保存到 <code>req.session.user</code>。</p>
+<h2 id="4-4-3-页面通知"><a href="#4-4-3-页面通知" class="headerlink" title="4.4.3 页面通知"></a>4.4.3 页面通知</h2><p>我们还需要这样一个功能：当我们操作成功时需要显示一个成功的通知，如登录成功跳转到主页时，需要显示一个 <code>登陆成功</code> 的通知；当我们操作失败时需要显示一个失败的通知，如注册时用户名被占用了，需要显示一个 <code>用户名已占用</code> 的通知。通知只显示一次，刷新后消失，我们可以通过 connect-flash 中间件实现这个功能。</p>
+<p><a href="https://www.npmjs.com/package/connect-flash">connect-flash</a> 是基于 session 实现的，它的原理很简单：设置初始值 <code>req.session.flash={}</code>，通过 <code>req.flash(name, value)</code> 设置这个对象下的字段和值，通过 <code>req.flash(name)</code> 获取这个对象下的值，同时删除这个字段，实现了只显示一次刷新后消失的功能。</p>
+<h4 id="express-session、connect-mongo-和-connect-flash-的区别与联系"><a href="#express-session、connect-mongo-和-connect-flash-的区别与联系" class="headerlink" title="express-session、connect-mongo 和 connect-flash 的区别与联系"></a>express-session、connect-mongo 和 connect-flash 的区别与联系</h4><ol>
+<li><code>express-session</code>: 会话（session）支持中间件</li>
+<li><code>connect-mongo</code>: 将 session 存储于 mongodb，需结合 express-session 使用，我们也可以将 session 存储于 redis，如 <a href="https://www.npmjs.com/package/connect-redis">connect-redis</a></li>
+<li><code>connect-flash</code>: 基于 session 实现的用于通知功能的中间件，需结合 express-session 使用</li>
+</ol>
+<h2 id="4-4-4-权限控制"><a href="#4-4-4-权限控制" class="headerlink" title="4.4.4 权限控制"></a>4.4.4 权限控制</h2><p>不管是论坛还是博客网站，我们没有登录的话只能浏览，登陆后才能发帖或写文章，即使登录了你也不能修改或删除其他人的文章，这就是权限控制。我们也来给博客添加权限控制，如何实现页面的权限控制呢？我们可以把用户状态的检查封装成一个中间件，在每个需要权限控制的路由加载该中间件，即可实现页面的权限控制。在 myblog 下新建 middlewares 目录，在该目录下新建 check.js，添加如下代码：</p>
+<p><strong>middlewares/check.js</strong></p>
+<pre><code class="js"><span class="built_in">module</span>.exports = {
+  checkLogin: <span class="function"><span class="keyword">function</span> <span class="title">checkLogin</span> (<span class="params">req, res, next</span>) </span>{
+    <span class="keyword">if</span> (!req.session.user) {
+      req.flash(<span class="string">'error'</span>, <span class="string">'未登录'</span>)
+      <span class="keyword">return</span> res.redirect(<span class="string">'/signin'</span>)
+    }
+    next()
+  },
+
+  checkNotLogin: <span class="function"><span class="keyword">function</span> <span class="title">checkNotLogin</span> (<span class="params">req, res, next</span>) </span>{
+    <span class="keyword">if</span> (req.session.user) {
+      req.flash(<span class="string">'error'</span>, <span class="string">'已登录'</span>)
+      <span class="keyword">return</span> res.redirect(<span class="string">'back'</span>)<span class="comment">// 返回之前的页面</span>
+    }
+    next()
+  }
+}</code></pre>
+<p>可以看出：</p>
+<ol>
+<li><code>checkLogin</code>: 当用户信息（<code>req.session.user</code>）不存在，即认为用户没有登录，则跳转到登录页，同时显示 <code>未登录</code> 的通知，用于需要用户登录才能操作的页面</li>
+<li><code>checkNotLogin</code>: 当用户信息（<code>req.session.user</code>）存在，即认为用户已经登录，则跳转到之前的页面，同时显示 <code>已登录</code> 的通知，如已登录用户就禁止访问登录、注册页面</li>
+</ol>
+<p>最终我们创建以下路由文件：</p>
+<p><strong>routes/index.js</strong></p>
+<pre><code class="js"><span class="built_in">module</span>.exports = <span class="function"><span class="keyword">function</span> (<span class="params">app</span>) </span>{
+  app.get(<span class="string">'/'</span>, <span class="function"><span class="keyword">function</span> (<span class="params">req, res</span>) </span>{
+    res.redirect(<span class="string">'/posts'</span>)
+  })
+  app.use(<span class="string">'/signup'</span>, <span class="built_in">require</span>(<span class="string">'./signup'</span>))
+  app.use(<span class="string">'/signin'</span>, <span class="built_in">require</span>(<span class="string">'./signin'</span>))
+  app.use(<span class="string">'/signout'</span>, <span class="built_in">require</span>(<span class="string">'./signout'</span>))
+  app.use(<span class="string">'/posts'</span>, <span class="built_in">require</span>(<span class="string">'./posts'</span>))
+  app.use(<span class="string">'/comments'</span>, <span class="built_in">require</span>(<span class="string">'./comments'</span>))
+}</code></pre>
+<p><strong>routes/posts.js</strong></p>
+<pre><code class="js"><span class="keyword">const</span> express = <span class="built_in">require</span>(<span class="string">'express'</span>)
+<span class="keyword">const</span> router = express.Router()
+
+<span class="keyword">const</span> checkLogin = <span class="built_in">require</span>(<span class="string">'../middlewares/check'</span>).checkLogin
+
+<span class="comment">// GET /posts 所有用户或者特定用户的文章页</span>
+<span class="comment">//   eg: GET /posts?author=xxx</span>
+router.get(<span class="string">'/'</span>, <span class="function"><span class="keyword">function</span> (<span class="params">req, res, next</span>) </span>{
+  res.send(<span class="string">'主页'</span>)
+})
+
+<span class="comment">// POST /posts/create 发表一篇文章</span>
+router.post(<span class="string">'/create'</span>, checkLogin, <span class="function"><span class="keyword">function</span> (<span class="params">req, res, next</span>) </span>{
+  res.send(<span class="string">'发表文章'</span>)
+})
+
+<span class="comment">// GET /posts/create 发表文章页</span>
+router.get(<span class="string">'/create'</span>, checkLogin, <span class="function"><span class="keyword">function</span> (<span class="params">req, res, next</span>) </span>{
+  res.send(<span class="string">'发表文章页'</span>)
+})
+
+<span class="comment">// GET /posts/:postId 单独一篇的文章页</span>
+router.get(<span class="string">'/:postId'</span>, <span class="function"><span class="keyword">function</span> (<span class="params">req, res, next</span>) </span>{
+  res.send(<span class="string">'文章详情页'</span>)
+})
+
+<span class="comment">// GET /posts/:postId/edit 更新文章页</span>
+router.get(<span class="string">'/:postId/edit'</span>, checkLogin, <span class="function"><span class="keyword">function</span> (<span class="params">req, res, next</span>) </span>{
+  res.send(<span class="string">'更新文章页'</span>)
+})
+
+<span class="comment">// POST /posts/:postId/edit 更新一篇文章</span>
+router.post(<span class="string">'/:postId/edit'</span>, checkLogin, <span class="function"><span class="keyword">function</span> (<span class="params">req, res, next</span>) </span>{
+  res.send(<span class="string">'更新文章'</span>)
+})
+
+<span class="comment">// GET /posts/:postId/remove 删除一篇文章</span>
+router.get(<span class="string">'/:postId/remove'</span>, checkLogin, <span class="function"><span class="keyword">function</span> (<span class="params">req, res, next</span>) </span>{
+  res.send(<span class="string">'删除文章'</span>)
+})
+
+<span class="built_in">module</span>.exports = router</code></pre>
+<p><strong>routes/comments.js</strong></p>
+<pre><code class="js"><span class="keyword">const</span> express = <span class="built_in">require</span>(<span class="string">'express'</span>)
+<span class="keyword">const</span> router = express.Router()
+<span class="keyword">const</span> checkLogin = <span class="built_in">require</span>(<span class="string">'../middlewares/check'</span>).checkLogin
+
+<span class="comment">// POST /comments 创建一条留言</span>
+router.post(<span class="string">'/'</span>, checkLogin, <span class="function"><span class="keyword">function</span> (<span class="params">req, res, next</span>) </span>{
+  res.send(<span class="string">'创建留言'</span>)
+})
+
+<span class="comment">// GET /comments/:commentId/remove 删除一条留言</span>
+router.get(<span class="string">'/:commentId/remove'</span>, checkLogin, <span class="function"><span class="keyword">function</span> (<span class="params">req, res, next</span>) </span>{
+  res.send(<span class="string">'删除留言'</span>)
+})
+
+<span class="built_in">module</span>.exports = router</code></pre>
+<p><strong>routes/signin.js</strong></p>
+<pre><code class="js"><span class="keyword">const</span> express = <span class="built_in">require</span>(<span class="string">'express'</span>)
+<span class="keyword">const</span> router = express.Router()
+
+<span class="keyword">const</span> checkNotLogin = <span class="built_in">require</span>(<span class="string">'../middlewares/check'</span>).checkNotLogin
+
+<span class="comment">// GET /signin 登录页</span>
+router.get(<span class="string">'/'</span>, checkNotLogin, <span class="function"><span class="keyword">function</span> (<span class="params">req, res, next</span>) </span>{
+  res.send(<span class="string">'登录页'</span>)
+})
+
+<span class="comment">// POST /signin 用户登录</span>
+router.post(<span class="string">'/'</span>, checkNotLogin, <span class="function"><span class="keyword">function</span> (<span class="params">req, res, next</span>) </span>{
+  res.send(<span class="string">'登录'</span>)
+})
+
+<span class="built_in">module</span>.exports = router</code></pre>
+<p><strong>routes/signup.js</strong></p>
+<pre><code class="js"><span class="keyword">const</span> express = <span class="built_in">require</span>(<span class="string">'express'</span>)
+<span class="keyword">const</span> router = express.Router()
+
+<span class="keyword">const</span> checkNotLogin = <span class="built_in">require</span>(<span class="string">'../middlewares/check'</span>).checkNotLogin
+
+<span class="comment">// GET /signup 注册页</span>
+router.get(<span class="string">'/'</span>, checkNotLogin, <span class="function"><span class="keyword">function</span> (<span class="params">req, res, next</span>) </span>{
+  res.send(<span class="string">'注册页'</span>)
+})
+
+<span class="comment">// POST /signup 用户注册</span>
+router.post(<span class="string">'/'</span>, checkNotLogin, <span class="function"><span class="keyword">function</span> (<span class="params">req, res, next</span>) </span>{
+  res.send(<span class="string">'注册'</span>)
+})
+
+<span class="built_in">module</span>.exports = router</code></pre>
+<p><strong>routes/signout.js</strong></p>
+<pre><code class="js"><span class="keyword">const</span> express = <span class="built_in">require</span>(<span class="string">'express'</span>)
+<span class="keyword">const</span> router = express.Router()
+
+<span class="keyword">const</span> checkLogin = <span class="built_in">require</span>(<span class="string">'../middlewares/check'</span>).checkLogin
+
+<span class="comment">// GET /signout 登出</span>
+router.get(<span class="string">'/'</span>, checkLogin, <span class="function"><span class="keyword">function</span> (<span class="params">req, res, next</span>) </span>{
+  res.send(<span class="string">'登出'</span>)
+})
+
+<span class="built_in">module</span>.exports = router</code></pre>
+<p>最后，修改 index.js 如下：</p>
+<p><strong>index.js</strong></p>
+<pre><code class="js"><span class="keyword">const</span> path = <span class="built_in">require</span>(<span class="string">'path'</span>)
+<span class="keyword">const</span> express = <span class="built_in">require</span>(<span class="string">'express'</span>)
+<span class="keyword">const</span> session = <span class="built_in">require</span>(<span class="string">'express-session'</span>)
+<span class="keyword">const</span> MongoStore = <span class="built_in">require</span>(<span class="string">'connect-mongo'</span>)(session)
+<span class="keyword">const</span> flash = <span class="built_in">require</span>(<span class="string">'connect-flash'</span>)
+<span class="keyword">const</span> config = <span class="built_in">require</span>(<span class="string">'config-lite'</span>)(__dirname)
+<span class="keyword">const</span> routes = <span class="built_in">require</span>(<span class="string">'./routes'</span>)
+<span class="keyword">const</span> pkg = <span class="built_in">require</span>(<span class="string">'./package'</span>)
+
+<span class="keyword">const</span> app = express()
+
+<span class="comment">// 设置模板目录</span>
+app.set(<span class="string">'views'</span>, path.join(__dirname, <span class="string">'views'</span>))
+<span class="comment">// 设置模板引擎为 ejs</span>
+app.set(<span class="string">'view engine'</span>, <span class="string">'ejs'</span>)
+
+<span class="comment">// 设置静态文件目录</span>
+app.use(express.static(path.join(__dirname, <span class="string">'public'</span>)))
+<span class="comment">// session 中间件</span>
+app.use(session({
+  name: config.session.key, <span class="comment">// 设置 cookie 中保存 session id 的字段名称</span>
+  secret: config.session.secret, <span class="comment">// 通过设置 secret 来计算 hash 值并放在 cookie 中，使产生的 signedCookie 防篡改</span>
+  resave: <span class="literal">true</span>, <span class="comment">// 强制更新 session</span>
+  saveUninitialized: <span class="literal">false</span>, <span class="comment">// 设置为 false，强制创建一个 session，即使用户未登录</span>
+  cookie: {
+    maxAge: config.session.maxAge<span class="comment">// 过期时间，过期后 cookie 中的 session id 自动删除</span>
+  },
+  store: <span class="keyword">new</span> MongoStore({<span class="comment">// 将 session 存储到 mongodb</span>
+    url: config.mongodb<span class="comment">// mongodb 地址</span>
+  })
+}))
+<span class="comment">// flash 中间件，用来显示通知</span>
+app.use(flash())
+
+<span class="comment">// 路由</span>
+routes(app)
+
+<span class="comment">// 监听端口，启动程序</span>
+app.listen(config.port, <span class="function"><span class="keyword">function</span> (<span class="params"></span>) </span>{
+  <span class="built_in">console</span>.log(<span class="string">`<span class="subst">${pkg.name}</span> listening on port <span class="subst">${config.port}</span>`</span>)
+})</code></pre>
+<blockquote>
+<p>注意：中间件的加载顺序很重要。如上面设置静态文件目录的中间件应该放到 routes(app) 之前加载，这样静态文件的请求就不会落到业务逻辑的路由里；flash 中间件应该放到 session 中间件之后加载，因为 flash 是基于 session 实现的。</p>
+</blockquote>
+<p>运行 <code>supervisor index</code> 启动博客，访问以下地址查看效果：</p>
+<ol>
+<li><a href="http://localhost:3000/posts">http://localhost:3000/posts</a></li>
+<li><a href="http://localhost:3000/signout">http://localhost:3000/signout</a></li>
+<li><a href="http://localhost:3000/signup">http://localhost:3000/signup</a></li>
+</ol>
+<p>上一节：<a href="https://github.com/nswbmw/N-blog/blob/master/book/4.3%20%E9%85%8D%E7%BD%AE%E6%96%87%E4%BB%B6.md">4.3 配置文件</a></p>
+<p>下一节：<a href="https://github.com/nswbmw/N-blog/blob/master/book/4.5%20%E9%A1%B5%E9%9D%A2%E8%AE%BE%E8%AE%A1.md">4.5 页面设计</a></p>

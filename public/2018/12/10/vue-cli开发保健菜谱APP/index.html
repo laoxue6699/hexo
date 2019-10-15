@@ -1,0 +1,629 @@
+<!DOCTYPE html>
+
+
+
+
+
+<html class="theme-next gemini use-motion" lang="zh-CN">
+<head>
+  <meta charset="UTF-8">
+<meta name="generator" content="Hexo 3.9.0">
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=2">
+<meta name="theme-color" content="#222">
+<meta http-equiv="X-UA-Compatible" content="IE=edge">
+  <link rel="apple-touch-icon" sizes="180x180" href="/images/apple-touch-icon-next.png?v=7.3.0">
+  <link rel="icon" type="image/png" sizes="32x32" href="/images/favicon-32x32-next.png?v=7.3.0">
+  <link rel="icon" type="image/png" sizes="16x16" href="/images/favicon-16x16-next.png?v=7.3.0">
+  <link rel="mask-icon" href="/images/logo.svg?v=7.3.0" color="#222">
+
+<link rel="stylesheet" href="/css/main.css?v=7.3.0">
+
+
+<link rel="stylesheet" href="/lib/font-awesome/css/font-awesome.min.css?v=4.7.0">
+
+
+<script id="hexo-configurations">
+  var NexT = window.NexT || {};
+  var CONFIG = {
+    root: '/',
+    scheme: 'Gemini',
+    version: '7.3.0',
+    exturl: false,
+    sidebar: {"position":"left","display":"post","offset":12,"onmobile":false},
+    back2top: {"enable":true,"sidebar":false,"scrollpercent":false},
+    save_scroll: false,
+    copycode: {"enable":false,"show_result":false,"style":null},
+    fancybox: false,
+    mediumzoom: false,
+    lazyload: false,
+    pangu: false,
+    algolia: {
+      applicationID: '',
+      apiKey: '',
+      indexName: '',
+      hits: {"per_page":10},
+      labels: {"input_placeholder":"Search for Posts","hits_empty":"We didn't find any results for the search: ${query}","hits_stats":"${hits} results found in ${time} ms"}
+    },
+    localsearch: {"enable":false,"trigger":"auto","top_n_per_article":1,"unescape":false,"preload":false},
+    path: '',
+    motion: {"enable":true,"async":false,"transition":{"post_block":"fadeIn","post_header":"slideDownIn","post_body":"slideDownIn","coll_header":"slideLeftIn","sidebar":"slideUpIn"}},
+    translation: {
+      copy_button: '复制',
+      copy_success: '复制成功',
+      copy_failure: '复制失败'
+    }
+  };
+</script>
+
+  <meta name="description" content="保健菜谱vue 代码链接: https://gitee.com/laoxue6699/meishi uni-app 代码链接: https://gitee.com/laoxue6699/health_menu 项目介绍项目主要功能是为人们提供常用保健菜品的制作方法。通过视频、图片、文字展示菜品的制作过程。提供列表查询和全文搜索功能方便查询。可以收藏自己喜爱的视频和图文菜谱。">
+<meta name="keywords" content="vue">
+<meta property="og:type" content="article">
+<meta property="og:title" content="vue-cli开发保健菜谱APP">
+<meta property="og:url" content="http://laoxue6699.github.io/2018/12/10/vue-cli开发保健菜谱APP/index.html">
+<meta property="og:site_name" content="老学的开发笔记">
+<meta property="og:description" content="保健菜谱vue 代码链接: https://gitee.com/laoxue6699/meishi uni-app 代码链接: https://gitee.com/laoxue6699/health_menu 项目介绍项目主要功能是为人们提供常用保健菜品的制作方法。通过视频、图片、文字展示菜品的制作过程。提供列表查询和全文搜索功能方便查询。可以收藏自己喜爱的视频和图文菜谱。">
+<meta property="og:locale" content="zh-CN">
+<meta property="og:image" content="http://pw59ntmi6.bkt.clouddn.com/meishi01.png">
+<meta property="og:image" content="http://pw59ntmi6.bkt.clouddn.com/meishi02.png">
+<meta property="og:image" content="http://pw59ntmi6.bkt.clouddn.com/meishi03.png">
+<meta property="og:image" content="http://pw59ntmi6.bkt.clouddn.com/meishi04.png">
+<meta property="og:image" content="http://pw59ntmi6.bkt.clouddn.com/meishi05.png">
+<meta property="og:image" content="http://pw59ntmi6.bkt.clouddn.com/meishi06.png">
+<meta property="og:image" content="http://pw59ntmi6.bkt.clouddn.com/meishi07.png">
+<meta property="og:image" content="http://pw59ntmi6.bkt.clouddn.com/meishi08.png">
+<meta property="og:image" content="http://pw59ntmi6.bkt.clouddn.com/meishi09.png">
+<meta property="og:updated_time" content="2019-08-12T23:23:21.352Z">
+<meta name="twitter:card" content="summary">
+<meta name="twitter:title" content="vue-cli开发保健菜谱APP">
+<meta name="twitter:description" content="保健菜谱vue 代码链接: https://gitee.com/laoxue6699/meishi uni-app 代码链接: https://gitee.com/laoxue6699/health_menu 项目介绍项目主要功能是为人们提供常用保健菜品的制作方法。通过视频、图片、文字展示菜品的制作过程。提供列表查询和全文搜索功能方便查询。可以收藏自己喜爱的视频和图文菜谱。">
+<meta name="twitter:image" content="http://pw59ntmi6.bkt.clouddn.com/meishi01.png">
+  <link rel="canonical" href="http://laoxue6699.github.io/2018/12/10/vue-cli开发保健菜谱APP/">
+
+
+<script id="page-configurations">
+  // https://hexo.io/docs/variables.html
+  CONFIG.page = {
+    sidebar: "",
+    isHome: false,
+    isPost: true,
+    isPage: false,
+    isArchive: false
+  };
+</script>
+
+  <title>vue-cli开发保健菜谱APP | 老学的开发笔记</title>
+  
+
+
+
+
+
+
+
+
+  <noscript>
+  <style>
+  .use-motion .motion-element,
+  .use-motion .brand,
+  .use-motion .menu-item,
+  .sidebar-inner,
+  .use-motion .post-block,
+  .use-motion .pagination,
+  .use-motion .comments,
+  .use-motion .post-header,
+  .use-motion .post-body,
+  .use-motion .collection-title { opacity: initial; }
+
+  .use-motion .logo,
+  .use-motion .site-title,
+  .use-motion .site-subtitle {
+    opacity: initial;
+    top: initial;
+  }
+
+  .use-motion .logo-line-before i { left: initial; }
+  .use-motion .logo-line-after i { right: initial; }
+  </style>
+</noscript>
+
+</head>
+
+<body itemscope itemtype="http://schema.org/WebPage" lang="zh-CN">
+
+  <div class="container sidebar-position-left">
+    <div class="headband"></div>
+
+    <header id="header" class="header" itemscope itemtype="http://schema.org/WPHeader">
+      <div class="header-inner"><div class="site-brand-wrapper">
+  <div class="site-meta">
+
+    <div class="custom-logo-site-title">
+      <a href="/" class="brand" rel="start">
+        <span class="logo-line-before"><i></i></span>
+        <span class="site-title">老学的开发笔记</span>
+        <span class="logo-line-after"><i></i></span>
+      </a>
+    </div>
+        <p class="site-subtitle">专注前端 兼顾全栈</p>
+      
+  </div>
+
+  <div class="site-nav-toggle">
+    <button aria-label="切换导航栏">
+      <span class="btn-bar"></span>
+      <span class="btn-bar"></span>
+      <span class="btn-bar"></span>
+    </button>
+  </div>
+</div>
+
+
+<nav class="site-nav">
+  
+  <ul id="menu" class="menu">
+      
+      
+      
+        
+        <li class="menu-item menu-item-home">
+      
+    
+
+    <a href="/" rel="section"><i class="menu-item-icon fa fa-fw fa-home"></i> <br>笔记列表</a>
+
+  </li>
+      
+      
+      
+        
+        <li class="menu-item menu-item-archives">
+      
+    
+
+    <a href="/archives/" rel="section"><i class="menu-item-icon fa fa-fw fa-archive"></i> <br>按时间归档</a>
+
+  </li>
+      
+      
+      
+        
+        <li class="menu-item menu-item-categories">
+      
+    
+
+    <a href="/categories/" rel="section"><i class="menu-item-icon fa fa-fw fa-th"></i> <br>笔记分类</a>
+
+  </li>
+      
+      
+      
+        
+        <li class="menu-item menu-item-tags">
+      
+    
+
+    <a href="/tags/" rel="section"><i class="menu-item-icon fa fa-fw fa-tags"></i> <br>技术标签</a>
+
+  </li>
+      
+      
+      
+        
+        <li class="menu-item menu-item-about">
+      
+    
+
+    <a href="/about/" rel="section"><i class="menu-item-icon fa fa-fw fa-user"></i> <br>自我介绍</a>
+
+  </li>
+  </ul>
+
+</nav>
+</div>
+    </header>
+
+    
+
+
+    <main id="main" class="main">
+      <div class="main-inner">
+        <div class="content-wrap">
+            
+
+          <div id="content" class="content page-post-detail">
+            
+
+  <div id="posts" class="posts-expand">
+    
+
+  <article class="post post-type-normal" itemscope itemtype="http://schema.org/Article">
+  
+  
+  
+  <div class="post-block">
+    <link itemprop="mainEntityOfPage" href="http://laoxue6699.github.io/2018/12/10/vue-cli开发保健菜谱APP/">
+
+    <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
+      <meta itemprop="name" content="老学">
+      <meta itemprop="description" content="好记性不如烂笔头">
+      <meta itemprop="image" content="/images/laoxue.png">
+    </span>
+
+    <span hidden itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
+      <meta itemprop="name" content="老学的开发笔记">
+    </span>
+      <header class="post-header">
+
+        
+          <h1 class="post-title" itemprop="name headline">vue-cli开发保健菜谱APP
+
+            
+          </h1>
+        
+
+        <div class="post-meta">
+            <span class="post-meta-item">
+              <span class="post-meta-item-icon">
+                <i class="fa fa-calendar-o"></i>
+              </span>
+              <span class="post-meta-item-text">发表于</span>
+
+              
+                
+              
+
+              <time title="创建时间：2018-12-10 11:02:21" itemprop="dateCreated datePublished" datetime="2018-12-10T11:02:21+08:00">2018-12-10</time>
+            </span>
+          
+            
+
+            
+              <span class="post-meta-item">
+                <span class="post-meta-item-icon">
+                  <i class="fa fa-calendar-check-o"></i>
+                </span>
+                <span class="post-meta-item-text">更新于</span>
+                <time title="修改时间：2019-08-13 07:23:21" itemprop="dateModified" datetime="2019-08-13T07:23:21+08:00">2019-08-13</time>
+              </span>
+            
+          
+
+          
+
+        </div>
+      </header>
+
+    
+    
+    
+    <div class="post-body" itemprop="articleBody">
+
+      
+        <h2 id="保健菜谱"><a href="#保健菜谱" class="headerlink" title="保健菜谱"></a>保健菜谱</h2><p><a href="https://gitee.com/laoxue6699/meishi" target="_blank" rel="noopener">vue 代码链接: https://gitee.com/laoxue6699/meishi</a></p>
+<p><a href="https://gitee.com/laoxue6699/health_menu" target="_blank" rel="noopener">uni-app 代码链接: https://gitee.com/laoxue6699/health_menu</a></p>
+<h3 id="项目介绍"><a href="#项目介绍" class="headerlink" title="项目介绍"></a>项目介绍</h3><p>项目主要功能是为人们提供常用保健菜品的制作方法。通过视频、图片、文字展示菜品的制作过程。提供列表查询和全文搜索功能方便查询。可以收藏自己喜爱的视频和图文菜谱。</p>
+<a id="more"></a>
+
+<p><img src="http://pw59ntmi6.bkt.clouddn.com/meishi01.png" alt="输入图片说明"></p>
+<h3 id="项目架构"><a href="#项目架构" class="headerlink" title="项目架构"></a>项目架构</h3><ul>
+<li>通过 Scrapy 爬取后台需要的数据，经过数据清洗和加工成 json 数据。</li>
+<li>利用json-server构建RESTful接口API。</li>
+<li>使用vue-li2脚手架工具构建前端APP项目。</li>
+<li>利用vuejs组件化技术，渐进构建项目界面。</li>
+<li>利用Axios请求远程数据。</li>
+<li>利用vue-router模块组织管理路由。</li>
+</ul>
+<h3 id="技术要领"><a href="#技术要领" class="headerlink" title="技术要领"></a>技术要领</h3><h4 id="封装"><a href="#封装" class="headerlink" title="封装"></a>封装</h4><ul>
+<li>在小型项目中，诸如 Axios 请求数据用一行代码就可以搞定，就没不要封装。在大型项目中，如果大到需要用 vuex 来管理状态，还是需要一定的代码封装的。</li>
+</ul>
+<h4 id="跨域请求"><a href="#跨域请求" class="headerlink" title="跨域请求"></a>跨域请求</h4><ul>
+<li>开发阶段可能会遇到跨域请求问题。通过修改 config 中 index.js 的代理参数得以解决。</li>
+</ul>
+<h4 id="组件拆分"><a href="#组件拆分" class="headerlink" title="组件拆分"></a>组件拆分</h4><ul>
+<li>项目总体的组件可以划分成两类：路由组件和非路由组件。路由组件在 router 中配置路由，非路由组件在模板中嵌套。</li>
+<li>不能凡组件必拆分，要坚持“高内聚、低耦合”的原则。对拆分后影响代码整体性理解或需要复杂配置的，尽量不要拆分。</li>
+</ul>
+<h4 id="传参"><a href="#传参" class="headerlink" title="传参"></a>传参</h4><ul>
+<li>传参主要有三种：路由传参、组件传参、vuex 状态管理。小项目可以不用 vuex 进行状态管理。</li>
+<li>路由传参注意 path 和 query 配合，name 和 params 配合。</li>
+<li>组件传参，父传子用属性传值 props 接收。子传父通过$emit 传递事件和值，父组件通过监听事件来接收传值，可以单线联系。</li>
+</ul>
+<h4 id="生命周期"><a href="#生命周期" class="headerlink" title="生命周期"></a>生命周期</h4><ul>
+<li>一般可以请求数据的代码放在 vue 的生命周期 created 钩子函数中。</li>
+</ul>
+<h4 id="列表渲染"><a href="#列表渲染" class="headerlink" title="列表渲染"></a>列表渲染</h4><ul>
+<li>v-for 可以嵌套遍历。</li>
+</ul>
+<h4 id="动态样式绑定"><a href="#动态样式绑定" class="headerlink" title="动态样式绑定"></a>动态样式绑定</h4><ul>
+<li>诸如底部选项卡的激活状态可以用动态样式绑定的方法来实现。</li>
+</ul>
+<h4 id="随机请求数据"><a href="#随机请求数据" class="headerlink" title="随机请求数据"></a>随机请求数据</h4><ul>
+<li>传统列表的数据都采取上拉加载下拉刷新的方式，对于数据量大的也可以先随机生成取值范围再请求数据的方法，这样可以给用户带来不同的体验。</li>
+</ul>
+<h4 id="全文搜索"><a href="#全文搜索" class="headerlink" title="全文搜索"></a>全文搜索</h4><p>可以预定义一些常用的搜索关键词供用户点按，既可以引导用户输入规范的关键词，也可以简化操作，提高用户体验。</p>
+<h4 id="控制-video-播放"><a href="#控制-video-播放" class="headerlink" title="控制 video 播放"></a>控制 video 播放</h4><p>在 vue 组件中，使用<code>v-show</code>来决定播放界面是否显示，当关闭播放组件时，正在播放的视频仍在播放。这是需要使用$refs 参数选取<code>video</code>元素来同时关闭视频播放。</p>
+<h4 id="poster-不兼容的处理"><a href="#poster-不兼容的处理" class="headerlink" title="poster 不兼容的处理"></a>poster 不兼容的处理</h4><p>vue 在使用 HTHL5 的 <code>video</code>元素播视频时，poster 默认的封面在真机上显示不出来，需要在模板中<code>video</code>元素的位置预先加载与 poster 相同的封面图片，才不会显示白板背景。</p>
+<h4 id="收藏功能的实现"><a href="#收藏功能的实现" class="headerlink" title="收藏功能的实现"></a>收藏功能的实现</h4><p>收藏视频和图文菜谱，需要用到 HTML5 的<code>localStorage</code>进行存储，为了节省空间，只需要存储收藏菜谱的<code>id</code>即可。由于保存的数据格式都是字符串，所以取出时还要转换成数组，才能做进一步的操作。用先进先出法限制存储的条目数。</p>
+<h3 id="项目界面"><a href="#项目界面" class="headerlink" title="项目界面"></a>项目界面</h3><p><img src="http://pw59ntmi6.bkt.clouddn.com/meishi02.png" alt="输入图片说明"></p>
+<p><img src="http://pw59ntmi6.bkt.clouddn.com/meishi03.png" alt="输入图片说明"></p>
+<p><img src="http://pw59ntmi6.bkt.clouddn.com/meishi04.png" alt="输入图片说明"></p>
+<p><img src="http://pw59ntmi6.bkt.clouddn.com/meishi05.png" alt="输入图片说明"></p>
+<p><img src="http://pw59ntmi6.bkt.clouddn.com/meishi06.png" alt="输入图片说明"></p>
+<p><img src="http://pw59ntmi6.bkt.clouddn.com/meishi07.png" alt="输入图片说明"></p>
+<p><img src="http://pw59ntmi6.bkt.clouddn.com/meishi08.png" alt="输入图片说明"></p>
+<p><img src="http://pw59ntmi6.bkt.clouddn.com/meishi09.png" alt="输入图片说明"></p>
+<h2 id="Build-Setup"><a href="#Build-Setup" class="headerlink" title="Build Setup"></a>Build Setup</h2><figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment"># install dependencies</span></span><br><span class="line">npm install</span><br><span class="line"></span><br><span class="line"><span class="comment"># serve with hot reload at localhost:8080</span></span><br><span class="line">npm run dev</span><br><span class="line"></span><br><span class="line"><span class="comment"># build for production with minification</span></span><br><span class="line">npm run build</span><br><span class="line"></span><br><span class="line"><span class="comment"># build for production and view the bundle analyzer report</span></span><br><span class="line">npm run build --report</span><br></pre></td></tr></table></figure>
+
+
+    </div>
+
+    
+    
+    
+        
+      
+
+      <footer class="post-footer">
+          
+            
+          
+          <div class="post-tags">
+            
+              <a href="/tags/vue/" rel="tag"># vue</a>
+            
+          </div>
+        
+
+        
+
+          <div class="post-nav">
+            <div class="post-nav-next post-nav-item">
+              
+            </div>
+
+            <span class="post-nav-divider"></span>
+
+            <div class="post-nav-prev post-nav-item">
+              
+                <a href="/2019/08/11/OKR-API-的设计与实现/" rel="prev" title="loopback3 快速创建标准的RESTful数据访问接口">
+                  loopback3 快速创建标准的RESTful数据访问接口 <i class="fa fa-chevron-right"></i>
+                </a>
+              
+            </div>
+          </div>
+        
+      </footer>
+    
+  </div>
+  
+  
+  
+  </article>
+
+  </div>
+
+
+          </div>
+          
+
+        </div>
+          
+  
+  <div class="sidebar-toggle">
+    <div class="sidebar-toggle-line-wrap">
+      <span class="sidebar-toggle-line sidebar-toggle-line-first"></span>
+      <span class="sidebar-toggle-line sidebar-toggle-line-middle"></span>
+      <span class="sidebar-toggle-line sidebar-toggle-line-last"></span>
+    </div>
+  </div>
+
+  <aside id="sidebar" class="sidebar">
+    <div class="sidebar-inner">
+        <ul class="sidebar-nav motion-element">
+          <li class="sidebar-nav-toc sidebar-nav-active" data-target="post-toc-wrap">
+            文章目录
+          </li>
+          <li class="sidebar-nav-overview" data-target="site-overview-wrap">
+            站点概览
+          </li>
+        </ul>
+      
+
+      <div class="site-overview-wrap sidebar-panel">
+        <div class="site-overview">
+
+          <div class="site-author motion-element" itemprop="author" itemscope itemtype="http://schema.org/Person">
+    <img class="site-author-image" itemprop="image"
+      src="/images/laoxue.png"
+      alt="老学">
+  <p class="site-author-name" itemprop="name">老学</p>
+  <div class="site-description motion-element" itemprop="description">好记性不如烂笔头</div>
+</div>
+  <nav class="site-state motion-element">
+      <div class="site-state-item site-state-posts">
+        
+          <a href="/archives/">
+        
+          <span class="site-state-item-count">10</span>
+          <span class="site-state-item-name">日志</span>
+        </a>
+      </div>
+    
+      
+      
+      <div class="site-state-item site-state-categories">
+        
+          
+            <a href="/categories/">
+          
+        
+        
+        
+          
+        
+          
+        
+        <span class="site-state-item-count">2</span>
+        <span class="site-state-item-name">分类</span>
+        </a>
+      </div>
+    
+      
+      
+      <div class="site-state-item site-state-tags">
+        
+          
+            <a href="/tags/">
+          
+        
+        
+        
+          
+        
+          
+        
+          
+        
+          
+        
+          
+        
+          
+        
+          
+        
+          
+        
+          
+        
+        <span class="site-state-item-count">9</span>
+        <span class="site-state-item-name">标签</span>
+        </a>
+      </div>
+    
+  </nav>
+
+
+
+        </div>
+      </div>
+      <!--noindex-->
+        <div class="post-toc-wrap motion-element sidebar-panel sidebar-panel-active">
+          <div class="post-toc">
+
+            
+            
+            
+            
+
+            
+              <div class="post-toc-content"><ol class="nav"><li class="nav-item nav-level-2"><a class="nav-link" href="#保健菜谱"><span class="nav-number">1.</span> <span class="nav-text">保健菜谱</span></a><ol class="nav-child"><li class="nav-item nav-level-3"><a class="nav-link" href="#项目介绍"><span class="nav-number">1.1.</span> <span class="nav-text">项目介绍</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#项目架构"><span class="nav-number">1.2.</span> <span class="nav-text">项目架构</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#技术要领"><span class="nav-number">1.3.</span> <span class="nav-text">技术要领</span></a><ol class="nav-child"><li class="nav-item nav-level-4"><a class="nav-link" href="#封装"><span class="nav-number">1.3.1.</span> <span class="nav-text">封装</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#跨域请求"><span class="nav-number">1.3.2.</span> <span class="nav-text">跨域请求</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#组件拆分"><span class="nav-number">1.3.3.</span> <span class="nav-text">组件拆分</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#传参"><span class="nav-number">1.3.4.</span> <span class="nav-text">传参</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#生命周期"><span class="nav-number">1.3.5.</span> <span class="nav-text">生命周期</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#列表渲染"><span class="nav-number">1.3.6.</span> <span class="nav-text">列表渲染</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#动态样式绑定"><span class="nav-number">1.3.7.</span> <span class="nav-text">动态样式绑定</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#随机请求数据"><span class="nav-number">1.3.8.</span> <span class="nav-text">随机请求数据</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#全文搜索"><span class="nav-number">1.3.9.</span> <span class="nav-text">全文搜索</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#控制-video-播放"><span class="nav-number">1.3.10.</span> <span class="nav-text">控制 video 播放</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#poster-不兼容的处理"><span class="nav-number">1.3.11.</span> <span class="nav-text">poster 不兼容的处理</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#收藏功能的实现"><span class="nav-number">1.3.12.</span> <span class="nav-text">收藏功能的实现</span></a></li></ol></li><li class="nav-item nav-level-3"><a class="nav-link" href="#项目界面"><span class="nav-number">1.4.</span> <span class="nav-text">项目界面</span></a></li></ol></li><li class="nav-item nav-level-2"><a class="nav-link" href="#Build-Setup"><span class="nav-number">2.</span> <span class="nav-text">Build Setup</span></a></li></ol></div>
+            
+
+          </div>
+        </div>
+      <!--/noindex-->
+      
+
+    </div>
+  </aside>
+  <div id="sidebar-dimmer"></div>
+
+
+      </div>
+    </main>
+
+    <footer id="footer" class="footer">
+      <div class="footer-inner">
+        <div class="copyright">&copy; <span itemprop="copyrightYear">2019</span>
+  <span class="with-love" id="animate">
+    <i class="fa fa-user"></i>
+  </span>
+  <span class="author" itemprop="copyrightHolder">老学</span>
+</div>
+  <div class="powered-by">由 <a href="https://hexo.io" class="theme-link" rel="noopener" target="_blank">Hexo</a> 强力驱动 v3.9.0</div>
+  <span class="post-meta-divider">|</span>
+  <div class="theme-info">主题 – <a href="https://theme-next.org" class="theme-link" rel="noopener" target="_blank">NexT.Gemini</a> v7.3.0</div>
+
+        
+
+
+
+
+
+
+
+
+        
+      </div>
+    </footer>
+      <div class="back-to-top">
+        <i class="fa fa-arrow-up"></i>
+      </div>
+
+    
+
+  </div>
+
+  
+  <script src="/lib/jquery/index.js?v=3.4.1"></script>
+  <script src="/lib/velocity/velocity.min.js?v=1.2.1"></script>
+  <script src="/lib/velocity/velocity.ui.min.js?v=1.2.1"></script>
+
+<script src="/js/utils.js?v=7.3.0"></script>
+  <script src="/js/motion.js?v=7.3.0"></script>
+
+
+  <script src="/js/affix.js?v=7.3.0"></script>
+  <script src="/js/schemes/pisces.js?v=7.3.0"></script>
+
+
+
+<script src="/js/next-boot.js?v=7.3.0"></script>
+
+
+
+
+  
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+  
+
+  
+
+  
+
+
+  
+  <script src="/js/scrollspy.js?v=7.3.0"></script>
+<script src="/js/post-details.js?v=7.3.0"></script>
+
+
+</body>
+</html>

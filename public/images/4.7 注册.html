@@ -1,0 +1,193 @@
+<h2 id="4-7-1-用户模型设计"><a href="#4-7-1-用户模型设计" class="headerlink" title="4.7.1 用户模型设计"></a>4.7.1 用户模型设计</h2><p>我们只存储用户的名称、密码（加密后的）、头像、性别和个人简介这几个字段，对应修改 lib/mongo.js，添加如下代码：</p>
+<p><strong>lib/mongo.js</strong></p>
+<pre><code class="js">exports.User = mongolass.model(<span class="string">'User'</span>, {
+  name: { <span class="attr">type</span>: <span class="string">'string'</span>, <span class="attr">required</span>: <span class="literal">true</span> },
+  password: { <span class="attr">type</span>: <span class="string">'string'</span>, <span class="attr">required</span>: <span class="literal">true</span> },
+  avatar: { <span class="attr">type</span>: <span class="string">'string'</span>, <span class="attr">required</span>: <span class="literal">true</span> },
+  gender: { <span class="attr">type</span>: <span class="string">'string'</span>, <span class="attr">enum</span>: [<span class="string">'m'</span>, <span class="string">'f'</span>, <span class="string">'x'</span>], <span class="attr">default</span>: <span class="string">'x'</span> },
+  bio: { <span class="attr">type</span>: <span class="string">'string'</span>, <span class="attr">required</span>: <span class="literal">true</span> }
+})
+exports.User.index({ <span class="attr">name</span>: <span class="number">1</span> }, { <span class="attr">unique</span>: <span class="literal">true</span> }).exec()<span class="comment">// 根据用户名找到用户，用户名全局唯一</span></code></pre>
+<p>我们定义了用户表的 schema，生成并导出了 User 这个 model，同时设置了 name 的唯一索引，保证用户名是不重复的。</p>
+<blockquote>
+<p>小提示：<code>required: true</code> 表示该字段是必需的，<code>default: xxx</code> 用于创建文档时设置默认值。更多关于 Mongolass 的 schema 的用法，请查阅 <a href="https://github.com/nswbmw/another-json-schema">another-json-schema</a>。</p>
+</blockquote>
+<blockquote>
+<p>小提示：Mongolass 中的 model 你可以认为相当于 mongodb 中的 collection，只不过添加了插件的功能。</p>
+</blockquote>
+<h2 id="4-7-2-注册页"><a href="#4-7-2-注册页" class="headerlink" title="4.7.2 注册页"></a>4.7.2 注册页</h2><p>首先，我们来完成注册。新建 views/signup.ejs，添加如下代码：</p>
+<p><strong>views/signup.ejs</strong></p>
+<pre><code class="ejs">&lt;%- include(&apos;header&apos;) %&gt;
+
+&lt;div class=&quot;ui grid&quot;&gt;
+  &lt;div class=&quot;four wide column&quot;&gt;&lt;/div&gt;
+  &lt;div class=&quot;eight wide column&quot;&gt;
+    &lt;form class=&quot;ui form segment&quot; method=&quot;post&quot; enctype=&quot;multipart/form-data&quot;&gt;
+      &lt;div class=&quot;field required&quot;&gt;
+        &lt;label&gt;用户名&lt;/label&gt;
+        &lt;input placeholder=&quot;用户名&quot; type=&quot;text&quot; name=&quot;name&quot;&gt;
+      &lt;/div&gt;
+      &lt;div class=&quot;field required&quot;&gt;
+        &lt;label&gt;密码&lt;/label&gt;
+        &lt;input placeholder=&quot;密码&quot; type=&quot;password&quot; name=&quot;password&quot;&gt;
+      &lt;/div&gt;
+      &lt;div class=&quot;field required&quot;&gt;
+        &lt;label&gt;重复密码&lt;/label&gt;
+        &lt;input placeholder=&quot;重复密码&quot; type=&quot;password&quot; name=&quot;repassword&quot;&gt;
+      &lt;/div&gt;
+      &lt;div class=&quot;field required&quot;&gt;
+        &lt;label&gt;性别&lt;/label&gt;
+        &lt;select class=&quot;ui compact selection dropdown&quot; name=&quot;gender&quot;&gt;
+          &lt;option value=&quot;m&quot;&gt;男&lt;/option&gt;
+          &lt;option value=&quot;f&quot;&gt;女&lt;/option&gt;
+          &lt;option value=&quot;x&quot;&gt;保密&lt;/option&gt;
+        &lt;/select&gt;
+      &lt;/div&gt;
+      &lt;div class=&quot;field required&quot;&gt;
+        &lt;label&gt;头像&lt;/label&gt;
+        &lt;input type=&quot;file&quot; name=&quot;avatar&quot;&gt;
+      &lt;/div&gt;
+      &lt;div class=&quot;field required&quot;&gt;
+        &lt;label&gt;个人简介&lt;/label&gt;
+        &lt;textarea name=&quot;bio&quot; rows=&quot;5&quot;&gt;&lt;/textarea&gt;
+      &lt;/div&gt;
+      &lt;input type=&quot;submit&quot; class=&quot;ui button fluid&quot; value=&quot;注册&quot;&gt;
+    &lt;/form&gt;
+  &lt;/div&gt;
+&lt;/div&gt;
+
+&lt;%- include(&apos;footer&apos;) %&gt;</code></pre>
+<blockquote>
+<p>注意：form 表单要添加 <code>enctype=&quot;multipart/form-data&quot;</code> 属性才能上传文件。</p>
+</blockquote>
+<p>修改 routes/signup.js 中获取注册页的路由如下：</p>
+<p><strong>routes/signup.js</strong></p>
+<pre><code class="js"><span class="comment">// GET /signup 注册页</span>
+router.get(<span class="string">'/'</span>, checkNotLogin, <span class="function"><span class="keyword">function</span> (<span class="params">req, res, next</span>) </span>{
+  res.render(<span class="string">'signup'</span>)
+})</code></pre>
+<p>现在访问 <code>localhost:3000/signup</code> 看看效果吧。</p>
+<h2 id="4-7-3-注册与文件上传"><a href="#4-7-3-注册与文件上传" class="headerlink" title="4.7.3 注册与文件上传"></a>4.7.3 注册与文件上传</h2><p>我们使用 <a href="https://github.com/utatti/express-formidable">express-formidable</a> 处理 form 表单（包括文件上传）。修改 index.js ，在 <code>app.use(flash())</code> 下一行添加如下代码：</p>
+<p><strong>index.js</strong></p>
+<pre><code class="js"><span class="comment">// 处理表单及文件上传的中间件</span>
+app.use(<span class="built_in">require</span>(<span class="string">'express-formidable'</span>)({
+  uploadDir: path.join(__dirname, <span class="string">'public/img'</span>), <span class="comment">// 上传文件目录</span>
+  keepExtensions: <span class="literal">true</span><span class="comment">// 保留后缀</span>
+}))</code></pre>
+<p>新建 models/users.js，添加如下代码：</p>
+<p><strong>models/users.js</strong></p>
+<pre><code class="js"><span class="keyword">const</span> User = <span class="built_in">require</span>(<span class="string">'../lib/mongo'</span>).User
+
+<span class="built_in">module</span>.exports = {
+  <span class="comment">// 注册一个用户</span>
+  create: <span class="function"><span class="keyword">function</span> <span class="title">create</span> (<span class="params">user</span>) </span>{
+    <span class="keyword">return</span> User.create(user).exec()
+  }
+}</code></pre>
+<p>完善处理用户注册的路由，最终修改 routes/signup.js 如下：</p>
+<p><strong>routes/signup.js</strong></p>
+<pre><code class="js"><span class="keyword">const</span> fs = <span class="built_in">require</span>(<span class="string">'fs'</span>)
+<span class="keyword">const</span> path = <span class="built_in">require</span>(<span class="string">'path'</span>)
+<span class="keyword">const</span> sha1 = <span class="built_in">require</span>(<span class="string">'sha1'</span>)
+<span class="keyword">const</span> express = <span class="built_in">require</span>(<span class="string">'express'</span>)
+<span class="keyword">const</span> router = express.Router()
+
+<span class="keyword">const</span> UserModel = <span class="built_in">require</span>(<span class="string">'../models/users'</span>)
+<span class="keyword">const</span> checkNotLogin = <span class="built_in">require</span>(<span class="string">'../middlewares/check'</span>).checkNotLogin
+
+<span class="comment">// GET /signup 注册页</span>
+router.get(<span class="string">'/'</span>, checkNotLogin, <span class="function"><span class="keyword">function</span> (<span class="params">req, res, next</span>) </span>{
+  res.render(<span class="string">'signup'</span>)
+})
+
+<span class="comment">// POST /signup 用户注册</span>
+router.post(<span class="string">'/'</span>, checkNotLogin, <span class="function"><span class="keyword">function</span> (<span class="params">req, res, next</span>) </span>{
+  <span class="keyword">const</span> name = req.fields.name
+  <span class="keyword">const</span> gender = req.fields.gender
+  <span class="keyword">const</span> bio = req.fields.bio
+  <span class="keyword">const</span> avatar = req.files.avatar.path.split(path.sep).pop()
+  <span class="keyword">let</span> password = req.fields.password
+  <span class="keyword">const</span> repassword = req.fields.repassword
+
+  <span class="comment">// 校验参数</span>
+  <span class="keyword">try</span> {
+    <span class="keyword">if</span> (!(name.length &gt;= <span class="number">1</span> &amp;&amp; name.length &lt;= <span class="number">10</span>)) {
+      <span class="keyword">throw</span> <span class="keyword">new</span> <span class="built_in">Error</span>(<span class="string">'名字请限制在 1-10 个字符'</span>)
+    }
+    <span class="keyword">if</span> ([<span class="string">'m'</span>, <span class="string">'f'</span>, <span class="string">'x'</span>].indexOf(gender) === <span class="number">-1</span>) {
+      <span class="keyword">throw</span> <span class="keyword">new</span> <span class="built_in">Error</span>(<span class="string">'性别只能是 m、f 或 x'</span>)
+    }
+    <span class="keyword">if</span> (!(bio.length &gt;= <span class="number">1</span> &amp;&amp; bio.length &lt;= <span class="number">30</span>)) {
+      <span class="keyword">throw</span> <span class="keyword">new</span> <span class="built_in">Error</span>(<span class="string">'个人简介请限制在 1-30 个字符'</span>)
+    }
+    <span class="keyword">if</span> (!req.files.avatar.name) {
+      <span class="keyword">throw</span> <span class="keyword">new</span> <span class="built_in">Error</span>(<span class="string">'缺少头像'</span>)
+    }
+    <span class="keyword">if</span> (password.length &lt; <span class="number">6</span>) {
+      <span class="keyword">throw</span> <span class="keyword">new</span> <span class="built_in">Error</span>(<span class="string">'密码至少 6 个字符'</span>)
+    }
+    <span class="keyword">if</span> (password !== repassword) {
+      <span class="keyword">throw</span> <span class="keyword">new</span> <span class="built_in">Error</span>(<span class="string">'两次输入密码不一致'</span>)
+    }
+  } <span class="keyword">catch</span> (e) {
+    <span class="comment">// 注册失败，异步删除上传的头像</span>
+    fs.unlink(req.files.avatar.path)
+    req.flash(<span class="string">'error'</span>, e.message)
+    <span class="keyword">return</span> res.redirect(<span class="string">'/signup'</span>)
+  }
+
+  <span class="comment">// 明文密码加密</span>
+  password = sha1(password)
+
+  <span class="comment">// 待写入数据库的用户信息</span>
+  <span class="keyword">let</span> user = {
+    name: name,
+    password: password,
+    gender: gender,
+    bio: bio,
+    avatar: avatar
+  }
+  <span class="comment">// 用户信息写入数据库</span>
+  UserModel.create(user)
+    .then(<span class="function"><span class="keyword">function</span> (<span class="params">result</span>) </span>{
+      <span class="comment">// 此 user 是插入 mongodb 后的值，包含 _id</span>
+      user = result.ops[<span class="number">0</span>]
+      <span class="comment">// 删除密码这种敏感信息，将用户信息存入 session</span>
+      <span class="keyword">delete</span> user.password
+      req.session.user = user
+      <span class="comment">// 写入 flash</span>
+      req.flash(<span class="string">'success'</span>, <span class="string">'注册成功'</span>)
+      <span class="comment">// 跳转到首页</span>
+      res.redirect(<span class="string">'/posts'</span>)
+    })
+    .catch(<span class="function"><span class="keyword">function</span> (<span class="params">e</span>) </span>{
+      <span class="comment">// 注册失败，异步删除上传的头像</span>
+      fs.unlink(req.files.avatar.path)
+      <span class="comment">// 用户名被占用则跳回注册页，而不是错误页</span>
+      <span class="keyword">if</span> (e.message.match(<span class="string">'duplicate key'</span>)) {
+        req.flash(<span class="string">'error'</span>, <span class="string">'用户名已被占用'</span>)
+        <span class="keyword">return</span> res.redirect(<span class="string">'/signup'</span>)
+      }
+      next(e)
+    })
+})
+
+<span class="built_in">module</span>.exports = router</code></pre>
+<p>我们使用 express-formidable 处理表单的上传，表单普通字段挂载到 req.fields 上，表单上传后的文件挂载到 req.files 上，文件存储在 public/img 目录下。然后校验了参数，校验通过后将用户信息插入到 MongoDB 中，成功则跳转到主页并显示『注册成功』的通知，失败（如用户名被占用）则跳转回注册页面并显示『用户名已被占用』的通知。</p>
+<blockquote>
+<p>注意：我们使用 sha1 加密用户的密码，sha1 并不是一种十分安全的加密方式，实际开发中可以使用更安全的 <a href="https://www.npmjs.com/package/bcrypt">bcrypt</a> 或 <a href="https://www.npmjs.com/package/scrypt">scrypt</a> 加密。<br>注意：注册失败时（参数校验失败或者存数据库时出错）删除已经上传到 public/img 目录下的头像。</p>
+</blockquote>
+<p>为了方便观察效果，我们先创建主页的模板。修改 routes/posts.js 中对应代码如下：</p>
+<p><strong>routes/posts.js</strong></p>
+<pre><code class="js">router.get(<span class="string">'/'</span>, <span class="function"><span class="keyword">function</span> (<span class="params">req, res, next</span>) </span>{
+  res.render(<span class="string">'posts'</span>)
+})</code></pre>
+<p>新建 views/posts.ejs，添加如下代码：</p>
+<p><strong>views/posts.ejs</strong></p>
+<pre><code class="ejs">&lt;%- include(&apos;header&apos;) %&gt;
+这是主页
+&lt;%- include(&apos;footer&apos;) %&gt;</code></pre>
+<p>访问 <code>localhost:3000/signup</code>，注册成功后如下所示：</p>
+<p><img src="/images/4.7.1.png" alt=""></p>
+<p>上一节：<a href="https://github.com/nswbmw/N-blog/blob/master/book/4.6%20%E8%BF%9E%E6%8E%A5%E6%95%B0%E6%8D%AE%E5%BA%93.md">4.6 连接数据库</a></p>
+<p>下一节：<a href="https://github.com/nswbmw/N-blog/blob/master/book/4.8%20%E7%99%BB%E5%87%BA%E4%B8%8E%E7%99%BB%E5%BD%95.md">4.8 登出与登录</a></p>

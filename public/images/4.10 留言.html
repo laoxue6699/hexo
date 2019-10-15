@@ -1,0 +1,262 @@
+<h2 id="4-10-1-留言模型设计"><a href="#4-10-1-留言模型设计" class="headerlink" title="4.10.1 留言模型设计"></a>4.10.1 留言模型设计</h2><p>我们只需要留言的作者 id、留言内容和关联的文章 id 这几个字段，修改 lib/mongo.js，添加如下代码：</p>
+<p><strong>lib/mongo.js</strong></p>
+<pre><code class="js">exports.Comment = mongolass.model(<span class="string">'Comment'</span>, {
+  author: { <span class="attr">type</span>: Mongolass.Types.ObjectId, <span class="attr">required</span>: <span class="literal">true</span> },
+  content: { <span class="attr">type</span>: <span class="string">'string'</span>, <span class="attr">required</span>: <span class="literal">true</span> },
+  postId: { <span class="attr">type</span>: Mongolass.Types.ObjectId, <span class="attr">required</span>: <span class="literal">true</span> }
+})
+exports.Comment.index({ <span class="attr">postId</span>: <span class="number">1</span>, <span class="attr">_id</span>: <span class="number">1</span> }).exec()<span class="comment">// 通过文章 id 获取该文章下所有留言，按留言创建时间升序</span></code></pre>
+<h2 id="4-10-2-显示留言"><a href="#4-10-2-显示留言" class="headerlink" title="4.10.2 显示留言"></a>4.10.2 显示留言</h2><p>在实现留言功能之前，我们先让文章页可以显示留言列表。首先创建留言的模板，新建 views/components/comments.ejs，添加如下代码：</p>
+<p><strong>views/components/comments.ejs</strong></p>
+<pre><code class="ejs">&lt;div class=&quot;ui grid&quot;&gt;
+  &lt;div class=&quot;four wide column&quot;&gt;&lt;/div&gt;
+  &lt;div class=&quot;eight wide column&quot;&gt;
+    &lt;div class=&quot;ui segment&quot;&gt;
+      &lt;div class=&quot;ui minimal comments&quot;&gt;
+        &lt;h3 class=&quot;ui dividing header&quot;&gt;留言&lt;/h3&gt;
+
+        &lt;% comments.forEach(function (comment) { %&gt;
+          &lt;div class=&quot;comment&quot;&gt;
+            &lt;span class=&quot;avatar&quot;&gt;
+              &lt;img src=&quot;/img/&lt;%= comment.author.avatar %&gt;&quot;&gt;
+            &lt;/span&gt;
+            &lt;div class=&quot;content&quot;&gt;
+              &lt;a class=&quot;author&quot; href=&quot;/posts?author=&lt;%= comment.author._id %&gt;&quot;&gt;&lt;%= comment.author.name %&gt;&lt;/a&gt;
+              &lt;div class=&quot;metadata&quot;&gt;
+                &lt;span class=&quot;date&quot;&gt;&lt;%= comment.created_at %&gt;&lt;/span&gt;
+              &lt;/div&gt;
+              &lt;div class=&quot;text&quot;&gt;&lt;%- comment.content %&gt;&lt;/div&gt;
+
+              &lt;% if (user &amp;&amp; comment.author._id &amp;&amp; user._id.toString() === comment.author._id.toString()) { %&gt;
+                &lt;div class=&quot;actions&quot;&gt;
+                  &lt;a class=&quot;reply&quot; href=&quot;/comments/&lt;%= comment._id %&gt;/remove&quot;&gt;删除&lt;/a&gt;
+                &lt;/div&gt;
+              &lt;% } %&gt;
+            &lt;/div&gt;
+          &lt;/div&gt;
+        &lt;% }) %&gt;
+
+        &lt;% if (user) { %&gt;
+          &lt;form class=&quot;ui reply form&quot; method=&quot;post&quot; action=&quot;/comments&quot;&gt;
+            &lt;input name=&quot;postId&quot; value=&quot;&lt;%= post._id %&gt;&quot; hidden&gt;
+            &lt;div class=&quot;field&quot;&gt;
+              &lt;textarea name=&quot;content&quot;&gt;&lt;/textarea&gt;
+            &lt;/div&gt;
+            &lt;input type=&quot;submit&quot; class=&quot;ui icon button&quot; value=&quot;留言&quot; /&gt;
+          &lt;/form&gt;
+        &lt;% } %&gt;
+
+      &lt;/div&gt;
+    &lt;/div&gt;
+  &lt;/div&gt;
+&lt;/div&gt;</code></pre>
+<blockquote>
+<p>注意：我们在提交留言表单时带上了文章 id（postId），通过 hidden 隐藏。</p>
+</blockquote>
+<p>在文章页引入留言的模板片段，修改 views/post.ejs 为：</p>
+<p><strong>views/post.ejs</strong></p>
+<pre><code class="ejs">&lt;%- include(&apos;header&apos;) %&gt;
+
+&lt;%- include(&apos;components/post-content&apos;) %&gt;
+&lt;%- include(&apos;components/comments&apos;) %&gt;
+
+&lt;%- include(&apos;footer&apos;) %&gt;</code></pre>
+<p>新建 models/comments.js，存放留言相关的数据库操作，添加如下代码：</p>
+<p><strong>models/comments.js</strong></p>
+<pre><code class="js"><span class="keyword">const</span> marked = <span class="built_in">require</span>(<span class="string">'marked'</span>)
+<span class="keyword">const</span> Comment = <span class="built_in">require</span>(<span class="string">'../lib/mongo'</span>).Comment
+
+<span class="comment">// 将 comment 的 content 从 markdown 转换成 html</span>
+Comment.plugin(<span class="string">'contentToHtml'</span>, {
+  afterFind: <span class="function"><span class="keyword">function</span> (<span class="params">comments</span>) </span>{
+    <span class="keyword">return</span> comments.map(<span class="function"><span class="keyword">function</span> (<span class="params">comment</span>) </span>{
+      comment.content = marked(comment.content)
+      <span class="keyword">return</span> comment
+    })
+  }
+})
+
+<span class="built_in">module</span>.exports = {
+  <span class="comment">// 创建一个留言</span>
+  create: <span class="function"><span class="keyword">function</span> <span class="title">create</span> (<span class="params">comment</span>) </span>{
+    <span class="keyword">return</span> Comment.create(comment).exec()
+  },
+
+  <span class="comment">// 通过留言 id 获取一个留言</span>
+  getCommentById: <span class="function"><span class="keyword">function</span> <span class="title">getCommentById</span> (<span class="params">commentId</span>) </span>{
+    <span class="keyword">return</span> Comment.findOne({ <span class="attr">_id</span>: commentId }).exec()
+  },
+
+  <span class="comment">// 通过留言 id 删除一个留言</span>
+  delCommentById: <span class="function"><span class="keyword">function</span> <span class="title">delCommentById</span> (<span class="params">commentId</span>) </span>{
+    <span class="keyword">return</span> Comment.deleteOne({ <span class="attr">_id</span>: commentId }).exec()
+  },
+
+  <span class="comment">// 通过文章 id 删除该文章下所有留言</span>
+  delCommentsByPostId: <span class="function"><span class="keyword">function</span> <span class="title">delCommentsByPostId</span> (<span class="params">postId</span>) </span>{
+    <span class="keyword">return</span> Comment.deleteMany({ <span class="attr">postId</span>: postId }).exec()
+  },
+
+  <span class="comment">// 通过文章 id 获取该文章下所有留言，按留言创建时间升序</span>
+  getComments: <span class="function"><span class="keyword">function</span> <span class="title">getComments</span> (<span class="params">postId</span>) </span>{
+    <span class="keyword">return</span> Comment
+      .find({ <span class="attr">postId</span>: postId })
+      .populate({ <span class="attr">path</span>: <span class="string">'author'</span>, <span class="attr">model</span>: <span class="string">'User'</span> })
+      .sort({ <span class="attr">_id</span>: <span class="number">1</span> })
+      .addCreatedAt()
+      .contentToHtml()
+      .exec()
+  },
+
+  <span class="comment">// 通过文章 id 获取该文章下留言数</span>
+  getCommentsCount: <span class="function"><span class="keyword">function</span> <span class="title">getCommentsCount</span> (<span class="params">postId</span>) </span>{
+    <span class="keyword">return</span> Comment.count({ <span class="attr">postId</span>: postId }).exec()
+  }
+}</code></pre>
+<blockquote>
+<p>小提示：我们让留言也支持了 markdown。<br>注意：删除一篇文章成功后也要删除该文章下所有的评论，上面 delCommentsByPostId 就是用来做这件事的。</p>
+</blockquote>
+<p>修改 models/posts.js，在：</p>
+<p><strong>models/posts.js</strong></p>
+<pre><code class="js"><span class="keyword">const</span> Post = <span class="built_in">require</span>(<span class="string">'../lib/mongo'</span>).Post</code></pre>
+<p>下添加如下代码：</p>
+<pre><code class="js"><span class="keyword">const</span> CommentModel = <span class="built_in">require</span>(<span class="string">'./comments'</span>)
+
+<span class="comment">// 给 post 添加留言数 commentsCount</span>
+Post.plugin(<span class="string">'addCommentsCount'</span>, {
+  afterFind: <span class="function"><span class="keyword">function</span> (<span class="params">posts</span>) </span>{
+    <span class="keyword">return</span> <span class="built_in">Promise</span>.all(posts.map(<span class="function"><span class="keyword">function</span> (<span class="params">post</span>) </span>{
+      <span class="keyword">return</span> CommentModel.getCommentsCount(post._id).then(<span class="function"><span class="keyword">function</span> (<span class="params">commentsCount</span>) </span>{
+        post.commentsCount = commentsCount
+        <span class="keyword">return</span> post
+      })
+    }))
+  },
+  afterFindOne: <span class="function"><span class="keyword">function</span> (<span class="params">post</span>) </span>{
+    <span class="keyword">if</span> (post) {
+      <span class="keyword">return</span> CommentModel.getCommentsCount(post._id).then(<span class="function"><span class="keyword">function</span> (<span class="params">count</span>) </span>{
+        post.commentsCount = count
+        <span class="keyword">return</span> post
+      })
+    }
+    <span class="keyword">return</span> post
+  }
+})</code></pre>
+<p>在 PostModel 上注册了 <code>addCommentsCount</code> 用来给每篇文章添加留言数 <code>commentsCount</code>，在 <code>getPostById</code> 和 <code>getPosts</code> 方法里的：</p>
+<pre><code>.addCreatedAt()</code></pre><p>下添加：</p>
+<pre><code>.addCommentsCount()</code></pre><p>这样主页和文章页的文章就可以正常显示留言数了。</p>
+<p>然后将 <code>delPostById</code> 修改为：</p>
+<pre><code class="js"><span class="comment">// 通过用户 id 和文章 id 删除一篇文章</span>
+delPostById: <span class="function"><span class="keyword">function</span> <span class="title">delPostById</span> (<span class="params">postId, author</span>) </span>{
+  <span class="keyword">return</span> Post.deleteOne({ <span class="attr">author</span>: author, <span class="attr">_id</span>: postId })
+    .exec()
+    .then(<span class="function"><span class="keyword">function</span> (<span class="params">res</span>) </span>{
+      <span class="comment">// 文章删除后，再删除该文章下的所有留言</span>
+      <span class="keyword">if</span> (res.result.ok &amp;&amp; res.result.n &gt; <span class="number">0</span>) {
+        <span class="keyword">return</span> CommentModel.delCommentsByPostId(postId)
+      }
+    })
+}</code></pre>
+<blockquote>
+<p>小提示：虽然目前看起来使用 Mongolass 自定义插件并不能节省代码，反而使代码变多了。Mongolass 插件真正的优势在于：在项目非常庞大时，可通过自定义的插件随意组合（及顺序）实现不同的输出，如上面的 <code>getPostById</code> 需要将取出 markdown 转换成 html，则使用 <code>.contentToHtml()</code>，否则像 <code>getRawPostById</code> 则不必使用。</p>
+</blockquote>
+<p>修改 routes/posts.js，在：</p>
+<p><strong>routes/posts.js</strong></p>
+<pre><code class="js"><span class="keyword">const</span> PostModel = <span class="built_in">require</span>(<span class="string">'../models/posts'</span>)</code></pre>
+<p>下引入 CommentModel:</p>
+<pre><code class="js"><span class="keyword">const</span> CommentModel = <span class="built_in">require</span>(<span class="string">'../models/comments'</span>)</code></pre>
+<p>在文章页传入留言列表，将：</p>
+<pre><code class="js"><span class="comment">// GET /posts/:postId 单独一篇的文章页</span>
+router.get(<span class="string">'/:postId'</span>, <span class="function"><span class="keyword">function</span> (<span class="params">req, res, next</span>) </span>{
+  ...
+})</code></pre>
+<p>修改为：</p>
+<pre><code class="js"><span class="comment">// GET /posts/:postId 单独一篇的文章页</span>
+router.get(<span class="string">'/:postId'</span>, <span class="function"><span class="keyword">function</span> (<span class="params">req, res, next</span>) </span>{
+  <span class="keyword">const</span> postId = req.params.postId
+
+  <span class="built_in">Promise</span>.all([
+    PostModel.getPostById(postId), <span class="comment">// 获取文章信息</span>
+    CommentModel.getComments(postId), <span class="comment">// 获取该文章所有留言</span>
+    PostModel.incPv(postId)<span class="comment">// pv 加 1</span>
+  ])
+    .then(<span class="function"><span class="keyword">function</span> (<span class="params">result</span>) </span>{
+      <span class="keyword">const</span> post = result[<span class="number">0</span>]
+      <span class="keyword">const</span> comments = result[<span class="number">1</span>]
+      <span class="keyword">if</span> (!post) {
+        <span class="keyword">throw</span> <span class="keyword">new</span> <span class="built_in">Error</span>(<span class="string">'该文章不存在'</span>)
+      }
+
+      res.render(<span class="string">'post'</span>, {
+        post: post,
+        comments: comments
+      })
+    })
+    .catch(next)
+})</code></pre>
+<p>现在刷新文章页试试吧，此时已经显示了留言的输入框。</p>
+<h2 id="4-10-3-发表与删除留言"><a href="#4-10-3-发表与删除留言" class="headerlink" title="4.10.3 发表与删除留言"></a>4.10.3 发表与删除留言</h2><p>现在我们来实现发表与删除留言的功能。将 routes/comments.js 修改如下：</p>
+<pre><code class="js"><span class="keyword">const</span> express = <span class="built_in">require</span>(<span class="string">'express'</span>)
+<span class="keyword">const</span> router = express.Router()
+
+<span class="keyword">const</span> checkLogin = <span class="built_in">require</span>(<span class="string">'../middlewares/check'</span>).checkLogin
+<span class="keyword">const</span> CommentModel = <span class="built_in">require</span>(<span class="string">'../models/comments'</span>)
+
+<span class="comment">// POST /comments 创建一条留言</span>
+router.post(<span class="string">'/'</span>, checkLogin, <span class="function"><span class="keyword">function</span> (<span class="params">req, res, next</span>) </span>{
+  <span class="keyword">const</span> author = req.session.user._id
+  <span class="keyword">const</span> postId = req.fields.postId
+  <span class="keyword">const</span> content = req.fields.content
+
+  <span class="comment">// 校验参数</span>
+  <span class="keyword">try</span> {
+    <span class="keyword">if</span> (!content.length) {
+      <span class="keyword">throw</span> <span class="keyword">new</span> <span class="built_in">Error</span>(<span class="string">'请填写留言内容'</span>)
+    }
+  } <span class="keyword">catch</span> (e) {
+    req.flash(<span class="string">'error'</span>, e.message)
+    <span class="keyword">return</span> res.redirect(<span class="string">'back'</span>)
+  }
+
+  <span class="keyword">const</span> comment = {
+    author: author,
+    postId: postId,
+    content: content
+  }
+
+  CommentModel.create(comment)
+    .then(<span class="function"><span class="keyword">function</span> (<span class="params"></span>) </span>{
+      req.flash(<span class="string">'success'</span>, <span class="string">'留言成功'</span>)
+      <span class="comment">// 留言成功后跳转到上一页</span>
+      res.redirect(<span class="string">'back'</span>)
+    })
+    .catch(next)
+})
+
+<span class="comment">// GET /comments/:commentId/remove 删除一条留言</span>
+router.get(<span class="string">'/:commentId/remove'</span>, checkLogin, <span class="function"><span class="keyword">function</span> (<span class="params">req, res, next</span>) </span>{
+  <span class="keyword">const</span> commentId = req.params.commentId
+  <span class="keyword">const</span> author = req.session.user._id
+
+  CommentModel.getCommentById(commentId)
+    .then(<span class="function"><span class="keyword">function</span> (<span class="params">comment</span>) </span>{
+      <span class="keyword">if</span> (!comment) {
+        <span class="keyword">throw</span> <span class="keyword">new</span> <span class="built_in">Error</span>(<span class="string">'留言不存在'</span>)
+      }
+      <span class="keyword">if</span> (comment.author.toString() !== author.toString()) {
+        <span class="keyword">throw</span> <span class="keyword">new</span> <span class="built_in">Error</span>(<span class="string">'没有权限删除留言'</span>)
+      }
+      CommentModel.delCommentById(commentId)
+        .then(<span class="function"><span class="keyword">function</span> (<span class="params"></span>) </span>{
+          req.flash(<span class="string">'success'</span>, <span class="string">'删除留言成功'</span>)
+          <span class="comment">// 删除成功后跳转到上一页</span>
+          res.redirect(<span class="string">'back'</span>)
+        })
+        .catch(next)
+    })
+})
+
+<span class="built_in">module</span>.exports = router</code></pre>
+<p>至此，我们完成了创建留言和删除留言的逻辑。刷新页面，尝试留言试试吧。留言成功后，将鼠标悬浮在留言上可以显示出 <code>删除</code> 的按钮，点击可以删除留言。</p>
+<p>上一节：<a href="https://github.com/nswbmw/N-blog/blob/master/book/4.9%20%E6%96%87%E7%AB%A0.md">4.9 文章</a></p>
+<p>下一节：<a href="https://github.com/nswbmw/N-blog/blob/master/book/4.11%20404%20%E9%A1%B5%E9%9D%A2.md">4.11 404页面</a></p>

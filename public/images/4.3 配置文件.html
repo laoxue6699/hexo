@@ -1,0 +1,23 @@
+<p>不管是小项目还是大项目，将配置与代码分离是一个非常好的做法。我们通常将配置写到一个配置文件里，如 config.js 或 config.json ，并放到项目的根目录下。但实际开发时我们会有许多环境，如本地开发环境、测试环境和线上环境等，不同环境的配置不同（如：MongoDB 的地址），我们不可能每次部署时都要去修改引用 config.test.js 或者 config.production.js。config-lite 模块正是你需要的。</p>
+<h2 id="4-3-1-config-lite"><a href="#4-3-1-config-lite" class="headerlink" title="4.3.1 config-lite"></a>4.3.1 config-lite</h2><p><a href="https://www.npmjs.com/package/config-lite">config-lite</a> 是一个轻量的读取配置文件的模块。config-lite 会根据环境变量（<code>NODE_ENV</code>）的不同加载 config 目录下不同的配置文件。如果不设置 <code>NODE_ENV</code>，则读取默认的 default 配置文件，如果设置了 <code>NODE_ENV</code>，则会合并指定的配置文件和 default 配置文件作为配置，config-lite 支持 .js、.json、.node、.yml、.yaml 后缀的文件。</p>
+<p>如果程序以 <code>NODE_ENV=test node app</code> 启动，则 config-lite 会依次降级查找 <code>config/test.js</code>、<code>config/test.json</code>、<code>config/test.node</code>、<code>config/test.yml</code>、<code>config/test.yaml</code> 并合并 default 配置; 如果程序以 <code>NODE_ENV=production node app</code> 启动，则 config-lite 会依次降级查找 <code>config/production.js</code>、<code>config/production.json</code>、<code>config/production.node</code>、<code>config/production.yml</code>、<code>config/production.yaml</code> 并合并 default 配置。</p>
+<p>config-lite 还支持冒泡查找配置，即从传入的路径开始，从该目录不断往上一级目录查找 config 目录，直到找到或者到达根目录为止。</p>
+<p>在 myblog 下新建 config 目录，在该目录下新建 default.js，添加如下代码：</p>
+<p><strong>config/default.js</strong></p>
+<pre><code class="js"><span class="built_in">module</span>.exports = {
+  port: <span class="number">3000</span>,
+  session: {
+    secret: <span class="string">'myblog'</span>,
+    key: <span class="string">'myblog'</span>,
+    maxAge: <span class="number">2592000000</span>
+  },
+  mongodb: <span class="string">'mongodb://localhost:27017/myblog'</span>
+}</code></pre>
+<p>配置释义：</p>
+<ol>
+<li><code>port</code>: 程序启动要监听的端口号</li>
+<li><code>session</code>: express-session 的配置信息，后面介绍</li>
+<li><code>mongodb</code>: mongodb 的地址，以 <code>mongodb://</code> 协议开头，<code>myblog</code> 为 db 名</li>
+</ol>
+<p>上一节：<a href="https://github.com/nswbmw/N-blog/blob/master/book/4.2%20%E5%87%86%E5%A4%87%E5%B7%A5%E4%BD%9C.md">4.2 准备工作</a></p>
+<p>下一节：<a href="https://github.com/nswbmw/N-blog/blob/master/book/4.4%20%E5%8A%9F%E8%83%BD%E8%AE%BE%E8%AE%A1.md">4.4 功能设计</a></p>

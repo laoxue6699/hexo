@@ -1,0 +1,82 @@
+<h2 id="4-2-1-目录结构"><a href="#4-2-1-目录结构" class="headerlink" title="4.2.1 目录结构"></a>4.2.1 目录结构</h2><p>我们停止 supervisor 并删除 myblog 目录从头来过。重新创建 myblog，运行 <code>npm init</code>，如下：</p>
+<p><img src="/images/4.2.1.png" alt=""></p>
+<p>在 myblog 目录下创建以下目录及空文件（package.json 除外）：</p>
+<p><img src="/images/4.2.2.png" alt=""></p>
+<p>对应文件及文件夹的用处：</p>
+<ol>
+<li><code>models</code>: 存放操作数据库的文件</li>
+<li><code>public</code>: 存放静态文件，如样式、图片等</li>
+<li><code>routes</code>: 存放路由文件</li>
+<li><code>views</code>: 存放模板文件</li>
+<li><code>index.js</code>: 程序主文件</li>
+<li><code>package.json</code>: 存储项目名、描述、作者、依赖等等信息</li>
+</ol>
+<blockquote>
+<p>小提示：不知读者发现了没有，我们遵循了 MVC（模型(model)－视图(view)－控制器(controller/route)） 的开发模式。</p>
+</blockquote>
+<h2 id="4-2-2-安装依赖模块"><a href="#4-2-2-安装依赖模块" class="headerlink" title="4.2.2 安装依赖模块"></a>4.2.2 安装依赖模块</h2><p>运行以下命令安装所需模块：</p>
+<pre><code class="sh">npm i config-lite connect-flash connect-mongo ejs express express-session marked moment mongolass objectid-to-timestamp sha1 winston express-winston --save
+npm i https://github.com:utatti/express-formidable.git --save <span class="comment"># 从 GitHub 安装 express-formidable 最新版，v1.0.0 有 bug</span></code></pre>
+<p>对应模块的用处：</p>
+<ol>
+<li><code>express</code>: web 框架</li>
+<li><code>express-session</code>: session 中间件</li>
+<li><code>connect-mongo</code>: 将 session 存储于 mongodb，结合 express-session 使用</li>
+<li><code>connect-flash</code>: 页面通知的中间件，基于 session 实现</li>
+<li><code>ejs</code>: 模板</li>
+<li><code>express-formidable</code>: 接收表单及文件上传的中间件</li>
+<li><code>config-lite</code>: 读取配置文件</li>
+<li><code>marked</code>: markdown 解析</li>
+<li><code>moment</code>: 时间格式化</li>
+<li><code>mongolass</code>: mongodb 驱动</li>
+<li><code>objectid-to-timestamp</code>: 根据 ObjectId 生成时间戳</li>
+<li><code>sha1</code>: sha1 加密，用于密码加密</li>
+<li><code>winston</code>: 日志</li>
+<li><code>express-winston</code>: express 的 winston 日志中间件</li>
+</ol>
+<p>后面会详细讲解这些模块的用法。</p>
+<h2 id="4-2-3-ESLint"><a href="#4-2-3-ESLint" class="headerlink" title="4.2.3 ESLint"></a>4.2.3 ESLint</h2><p>ESLint 是一个代码规范和语法错误检查工具。使用 ESLint 可以规范我们的代码书写，可以在编写代码期间就能发现一些低级错误。</p>
+<p>ESLint 需要结合编辑器或 IDE 使用，如：</p>
+<ul>
+<li>Sublime Text 需要装两个插件：SublimeLinter + SublimeLinter-contrib-eslint</li>
+<li>VS Code 需要装一个插件：ESLint</li>
+</ul>
+<blockquote>
+<p>小提示：Sublime Text 安装插件通过 ctrl+shift+p 调出 Package Control，输入 install 选择 Install Package 回车。输入对应插件名搜索，回车安装。<br>小提示：VS Code 安装插件需要点击左侧『扩展』页</p>
+</blockquote>
+<p>全局安装 eslint：</p>
+<pre><code class="sh">npm i eslint -g</code></pre>
+<p>运行：</p>
+<pre><code class="sh">eslint --init</code></pre>
+<p>初始化 eslint 配置，依次选择：</p>
+<p>-&gt; Use a popular style guide<br>-&gt; Standard<br>-&gt; JSON</p>
+<blockquote>
+<p>注意：如果 Windows 用户使用其他命令行工具无法上下切换选项，切换回 cmd。</p>
+</blockquote>
+<p>eslint 会创建一个 .eslintrc.json 的配置文件，同时自动安装并添加相关的模块到 devDependencies。这里我们使用 Standard 规范，其主要特点是不加分号。</p>
+<h3 id="4-2-4-EditorConfig"><a href="#4-2-4-EditorConfig" class="headerlink" title="4.2.4 EditorConfig"></a>4.2.4 EditorConfig</h3><p>EditorConfig 是一个保持缩进风格的一致的工具，当多人共同开发一个项目的时候，往往会出现每个人用不同编辑器的情况，而且有的人用 tab 缩进，有的人用 2 个空格缩进，有的人用 4 个空格缩进，EditorConfig 就是为了解决这个问题而诞生。</p>
+<p>EditorConfig 需要结合编辑器或 IDE 使用，如：</p>
+<ul>
+<li>Sublime Text 需要装一个插件：EditorConfig</li>
+<li>VS Code 需要装一个插件：EditorConfig for VS Code</li>
+</ul>
+<p>在 myblog 目录下新建 .editorconfig 的文件，添加如下内容：</p>
+<pre><code># editorconfig.org
+root = true
+
+[*]
+indent_style = space
+indent_size = 2
+end_of_line = lf
+charset = utf-8
+trim_trailing_whitespace = true
+insert_final_newline = true
+tab_width = 2
+
+[*.md]
+trim_trailing_whitespace = false
+
+[Makefile]
+indent_style = tab</code></pre><p>这里我们使用 2 个空格缩进，tab 长度也是 2 个空格。trim_trailing_whitespace 用来删除每一行最后多余的空格，insert_final_newline 用来在代码最后插入一个空的换行。</p>
+<p>上一节：<a href="https://github.com/nswbmw/N-blog/blob/master/book/4.1%20%E5%BC%80%E5%8F%91%E7%8E%AF%E5%A2%83.md">4.1 开发环境</a></p>
+<p>下一节：<a href="https://github.com/nswbmw/N-blog/blob/master/book/4.3%20%E9%85%8D%E7%BD%AE%E6%96%87%E4%BB%B6.md">4.3 配置文件</a></p>

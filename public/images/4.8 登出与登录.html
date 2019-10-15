@@ -1,0 +1,148 @@
+<h2 id="4-8-1-登出"><a href="#4-8-1-登出" class="headerlink" title="4.8.1 登出"></a>4.8.1 登出</h2><p>现在我们来完成登出的功能。修改 routes/signout.js 如下：</p>
+<p><strong>routes/signout.js</strong></p>
+<pre><code class="js"><span class="keyword">const</span> express = <span class="built_in">require</span>(<span class="string">'express'</span>)
+<span class="keyword">const</span> router = express.Router()
+
+<span class="keyword">const</span> checkLogin = <span class="built_in">require</span>(<span class="string">'../middlewares/check'</span>).checkLogin
+
+<span class="comment">// GET /signout 登出</span>
+router.get(<span class="string">'/'</span>, checkLogin, <span class="function"><span class="keyword">function</span> (<span class="params">req, res, next</span>) </span>{
+  <span class="comment">// 清空 session 中用户信息</span>
+  req.session.user = <span class="literal">null</span>
+  req.flash(<span class="string">'success'</span>, <span class="string">'登出成功'</span>)
+  <span class="comment">// 登出成功后跳转到主页</span>
+  res.redirect(<span class="string">'/posts'</span>)
+})
+
+<span class="built_in">module</span>.exports = router</code></pre>
+<p>此时刷新页面，点击右上角的 <code>登出</code>，成功后如下图所示：</p>
+<p><img src="/images/4.8.1.png" alt=""></p>
+<h2 id="4-8-2-登录页"><a href="#4-8-2-登录页" class="headerlink" title="4.8.2 登录页"></a>4.8.2 登录页</h2><p>现在我们来完成登录页。修改 routes/signin.js 相应代码如下：</p>
+<p><strong>routes/signin.js</strong></p>
+<pre><code class="js">router.get(<span class="string">'/'</span>, checkNotLogin, <span class="function"><span class="keyword">function</span> (<span class="params">req, res, next</span>) </span>{
+  res.render(<span class="string">'signin'</span>)
+})</code></pre>
+<p>新建 views/signin.ejs，添加如下代码：</p>
+<p><strong>views/signin.ejs</strong></p>
+<pre><code class="ejs">&lt;%- include(&apos;header&apos;) %&gt;
+
+&lt;div class=&quot;ui grid&quot;&gt;
+  &lt;div class=&quot;four wide column&quot;&gt;&lt;/div&gt;
+  &lt;div class=&quot;eight wide column&quot;&gt;
+    &lt;form class=&quot;ui form segment&quot; method=&quot;post&quot;&gt;
+      &lt;div class=&quot;field required&quot;&gt;
+        &lt;label&gt;用户名&lt;/label&gt;
+        &lt;input placeholder=&quot;用户名&quot; type=&quot;text&quot; name=&quot;name&quot;&gt;
+      &lt;/div&gt;
+      &lt;div class=&quot;field required&quot;&gt;
+        &lt;label&gt;密码&lt;/label&gt;
+        &lt;input placeholder=&quot;密码&quot; type=&quot;password&quot; name=&quot;password&quot;&gt;
+      &lt;/div&gt;
+      &lt;input type=&quot;submit&quot; class=&quot;ui button fluid&quot; value=&quot;登录&quot;&gt;
+    &lt;/form&gt;  
+  &lt;/div&gt;
+&lt;/div&gt;
+
+&lt;%- include(&apos;footer&apos;) %&gt;</code></pre>
+<p>现在刷新页面，点击右边上角 <code>登录</code> 试试吧，我们已经看到了登录页，但先不要点击登录，接下来我们实现处理登录的逻辑。</p>
+<h2 id="4-8-3-登录"><a href="#4-8-3-登录" class="headerlink" title="4.8.3 登录"></a>4.8.3 登录</h2><p>现在我们来完成登录的功能。修改 models/users.js 添加 <code>getUserByName</code> 方法用于通过用户名获取用户信息：</p>
+<p><strong>models/users.js</strong></p>
+<pre><code class="js"><span class="keyword">const</span> User = <span class="built_in">require</span>(<span class="string">'../lib/mongo'</span>).User
+
+<span class="built_in">module</span>.exports = {
+  <span class="comment">// 注册一个用户</span>
+  create: <span class="function"><span class="keyword">function</span> <span class="title">create</span> (<span class="params">user</span>) </span>{
+    <span class="keyword">return</span> User.create(user).exec()
+  },
+
+  <span class="comment">// 通过用户名获取用户信息</span>
+  getUserByName: <span class="function"><span class="keyword">function</span> <span class="title">getUserByName</span> (<span class="params">name</span>) </span>{
+    <span class="keyword">return</span> User
+      .findOne({ <span class="attr">name</span>: name })
+      .addCreatedAt()
+      .exec()
+  }
+}</code></pre>
+<p>这里我们使用了 <code>addCreatedAt</code> 自定义插件（通过 _id 生成时间戳），修改 lib/mongo.js，添加如下代码：</p>
+<p><strong>lib/mongo.js</strong></p>
+<pre><code class="js"><span class="keyword">const</span> moment = <span class="built_in">require</span>(<span class="string">'moment'</span>)
+<span class="keyword">const</span> objectIdToTimestamp = <span class="built_in">require</span>(<span class="string">'objectid-to-timestamp'</span>)
+
+<span class="comment">// 根据 id 生成创建时间 created_at</span>
+mongolass.plugin(<span class="string">'addCreatedAt'</span>, {
+  afterFind: <span class="function"><span class="keyword">function</span> (<span class="params">results</span>) </span>{
+    results.forEach(<span class="function"><span class="keyword">function</span> (<span class="params">item</span>) </span>{
+      item.created_at = moment(objectIdToTimestamp(item._id)).format(<span class="string">'YYYY-MM-DD HH:mm'</span>)
+    })
+    <span class="keyword">return</span> results
+  },
+  afterFindOne: <span class="function"><span class="keyword">function</span> (<span class="params">result</span>) </span>{
+    <span class="keyword">if</span> (result) {
+      result.created_at = moment(objectIdToTimestamp(result._id)).format(<span class="string">'YYYY-MM-DD HH:mm'</span>)
+    }
+    <span class="keyword">return</span> result
+  }
+})</code></pre>
+<blockquote>
+<p>小提示：24 位长的 ObjectId 前 4 个字节是精确到秒的时间戳，所以我们没有额外的存创建时间（如: createdAt）的字段。ObjectId 生成规则：</p>
+</blockquote>
+<p><img src="/images/4.8.2.png" alt=""></p>
+<p>修改 routes/signin.js 如下：</p>
+<p><strong>routes/signin.js</strong></p>
+<pre><code class="js"><span class="keyword">const</span> sha1 = <span class="built_in">require</span>(<span class="string">'sha1'</span>)
+<span class="keyword">const</span> express = <span class="built_in">require</span>(<span class="string">'express'</span>)
+<span class="keyword">const</span> router = express.Router()
+
+<span class="keyword">const</span> UserModel = <span class="built_in">require</span>(<span class="string">'../models/users'</span>)
+<span class="keyword">const</span> checkNotLogin = <span class="built_in">require</span>(<span class="string">'../middlewares/check'</span>).checkNotLogin
+
+<span class="comment">// GET /signin 登录页</span>
+router.get(<span class="string">'/'</span>, checkNotLogin, <span class="function"><span class="keyword">function</span> (<span class="params">req, res, next</span>) </span>{
+  res.render(<span class="string">'signin'</span>)
+})
+
+<span class="comment">// POST /signin 用户登录</span>
+router.post(<span class="string">'/'</span>, checkNotLogin, <span class="function"><span class="keyword">function</span> (<span class="params">req, res, next</span>) </span>{
+  <span class="keyword">const</span> name = req.fields.name
+  <span class="keyword">const</span> password = req.fields.password
+
+  <span class="comment">// 校验参数</span>
+  <span class="keyword">try</span> {
+    <span class="keyword">if</span> (!name.length) {
+      <span class="keyword">throw</span> <span class="keyword">new</span> <span class="built_in">Error</span>(<span class="string">'请填写用户名'</span>)
+    }
+    <span class="keyword">if</span> (!password.length) {
+      <span class="keyword">throw</span> <span class="keyword">new</span> <span class="built_in">Error</span>(<span class="string">'请填写密码'</span>)
+    }
+  } <span class="keyword">catch</span> (e) {
+    req.flash(<span class="string">'error'</span>, e.message)
+    <span class="keyword">return</span> res.redirect(<span class="string">'back'</span>)
+  }
+
+  UserModel.getUserByName(name)
+    .then(<span class="function"><span class="keyword">function</span> (<span class="params">user</span>) </span>{
+      <span class="keyword">if</span> (!user) {
+        req.flash(<span class="string">'error'</span>, <span class="string">'用户不存在'</span>)
+        <span class="keyword">return</span> res.redirect(<span class="string">'back'</span>)
+      }
+      <span class="comment">// 检查密码是否匹配</span>
+      <span class="keyword">if</span> (sha1(password) !== user.password) {
+        req.flash(<span class="string">'error'</span>, <span class="string">'用户名或密码错误'</span>)
+        <span class="keyword">return</span> res.redirect(<span class="string">'back'</span>)
+      }
+      req.flash(<span class="string">'success'</span>, <span class="string">'登录成功'</span>)
+      <span class="comment">// 用户信息写入 session</span>
+      <span class="keyword">delete</span> user.password
+      req.session.user = user
+      <span class="comment">// 跳转到主页</span>
+      res.redirect(<span class="string">'/posts'</span>)
+    })
+    .catch(next)
+})
+
+<span class="built_in">module</span>.exports = router</code></pre>
+<p>这里我们在 POST /signin 的路由处理函数中，通过传上来的 name 去数据库中找到对应用户，校验传上来的密码是否跟数据库中的一致。不一致则返回上一页（即登录页）并显示『用户名或密码错误』的通知，一致则将用户信息写入 session，跳转到主页并显示『登录成功』的通知。</p>
+<p>现在刷新页面，点击右上角 <code>登录</code>，用刚才注册的账号登录，如下图所示：</p>
+<p><img src="/images/4.8.3.png" alt=""></p>
+<p>上一节：<a href="https://github.com/nswbmw/N-blog/blob/master/book/4.7%20%E6%B3%A8%E5%86%8C.md">4.7 注册</a></p>
+<p>下一节：<a href="https://github.com/nswbmw/N-blog/blob/master/book/4.9%20%E6%96%87%E7%AB%A0.md">4.9 文章</a></p>

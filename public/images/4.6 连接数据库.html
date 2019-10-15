@@ -1,0 +1,90 @@
+<p>我们使用 <a href="https://github.com/mongolass/mongolass">Mongolass</a> 这个模块操作 mongodb 进行增删改查。在 myblog 下新建 lib 目录，在该目录下新建 mongo.js，添加如下代码：</p>
+<p><strong>lib/mongo.js</strong></p>
+<pre><code class="js"><span class="keyword">const</span> config = <span class="built_in">require</span>(<span class="string">'config-lite'</span>)(__dirname)
+<span class="keyword">const</span> Mongolass = <span class="built_in">require</span>(<span class="string">'mongolass'</span>)
+<span class="keyword">const</span> mongolass = <span class="keyword">new</span> Mongolass()
+mongolass.connect(config.mongodb)</code></pre>
+<h2 id="4-6-1-为什么使用-Mongolass"><a href="#4-6-1-为什么使用-Mongolass" class="headerlink" title="4.6.1 为什么使用 Mongolass"></a>4.6.1 为什么使用 Mongolass</h2><p>早期我使用官方的 <a href="https://www.npmjs.com/package/mongodb">mongodb</a>（也叫 node-mongodb-native）库，后来也陆续尝试使用了许多其他 mongodb 的驱动库，<a href="https://www.npmjs.com/package/mongoose">Mongoose</a> 是比较优秀的一个，使用 Mongoose 的时间也比较长。比较这两者，各有优缺点。</p>
+<h4 id="node-mongodb-native"><a href="#node-mongodb-native" class="headerlink" title="node-mongodb-native:"></a>node-mongodb-native:</h4><p><strong>优点：</strong></p>
+<ol>
+<li>简单。参照文档即可上手，没有 Mongoose 的 Schema 那些对新手不友好的东西。</li>
+<li>强大。毕竟是官方库，包含了所有且最新的 api，其他大部分的库都是在这个库的基础上改造的，包括 Mongoose。</li>
+<li>文档健全。</li>
+</ol>
+<p><strong>缺点：</strong></p>
+<ol>
+<li>起初只支持 callback，会写出以下这种代码：<pre><code class="js">mongodb.open(<span class="function"><span class="keyword">function</span> (<span class="params">err, db</span>) </span>{
+<span class="keyword">if</span> (err) {
+ <span class="keyword">return</span> callback(err)
+}
+db.collection(<span class="string">'users'</span>, <span class="function"><span class="keyword">function</span> (<span class="params">err, collection</span>) </span>{
+ <span class="keyword">if</span> (err) {
+   <span class="keyword">return</span> callback(err)
+ }
+ collection.find({ <span class="attr">name</span>: <span class="string">'xxx'</span> }, <span class="function"><span class="keyword">function</span> (<span class="params">err, users</span>) </span>{
+   <span class="keyword">if</span> (err) {
+     <span class="keyword">return</span> callback(err)
+   }
+ })
+...</code></pre>
+</li>
+</ol>
+<p>或者：</p>
+<pre><code class="js">MongoClient.connect(<span class="string">'mongodb://localhost:27017'</span>, <span class="function"><span class="keyword">function</span> (<span class="params">err, mongodb</span>) </span>{
+  <span class="keyword">if</span> (err) {
+    <span class="keyword">return</span> callback(err)
+  }
+  mongodb.db(<span class="string">'test'</span>).collection(<span class="string">'users'</span>).find({ <span class="attr">name</span>: <span class="string">'xxx'</span> }, <span class="function"><span class="keyword">function</span> (<span class="params">err, users</span>) </span>{
+    <span class="keyword">if</span> (err) {
+      <span class="keyword">return</span> callback(err)
+    }
+  })
+  ...</code></pre>
+<p>现在支持 Promise 了，和 co 一起使用好很多。</p>
+<ol start="2">
+<li>不支持文档校验。Mongoose 通过 Schema 支持文档校验，虽说 mongodb 是 no schema 的，但在生产环境中使用 Schema 有两点好处。一是对文档做校验，防止非正常情况下写入错误的数据到数据库，二是可以简化一些代码，如类型为 ObjectId 的字段查询或更新时可通过对应的字符串操作，不用每次包装成 ObjectId 对象。</li>
+</ol>
+<h4 id="Mongoose"><a href="#Mongoose" class="headerlink" title="Mongoose:"></a>Mongoose:</h4><p><strong>优点：</strong></p>
+<ol>
+<li>封装了数据库的操作，给人的感觉是同步的，其实内部是异步的。如 mongoose 与 MongoDB 建立连接：<pre><code class="js"><span class="keyword">const</span> mongoose = <span class="built_in">require</span>(<span class="string">'mongoose'</span>)
+mongoose.connect(<span class="string">'mongodb://localhost/test'</span>)
+<span class="keyword">const</span> BlogModel = mongoose.model(<span class="string">'Blog'</span>, { <span class="attr">title</span>: <span class="built_in">String</span>, <span class="attr">content</span>: <span class="built_in">String</span> })
+BlogModel.find()</code></pre>
+</li>
+<li>支持 Promise。这个也无需多说，Promise 是未来趋势，可结合 co 使用，也可结合 async/await 使用。</li>
+<li>支持文档校验。如上所述。</li>
+</ol>
+<p><strong>缺点（个人观点）：</strong></p>
+<ol>
+<li>功能多，复杂。Mongoose 功能很强大，包括静态方法，实例方法，虚拟属性，hook 函数等等，混用带来的后果是逻辑复杂，代码难以维护。</li>
+<li>较弱的 plugin 系统。如：<code>schema.pre(&#39;save&#39;, function(next) {})</code> 和 <code>schema.post(&#39;find&#39;, function(next) {})</code>，只支持异步 <code>next()</code>，灵活性大打折扣。</li>
+<li>其他：对新手来说难以理解的 Schema、Model、Entity 之间的关系；容易混淆的 toJSON 和 toObject，以及有带有虚拟属性的情况；用和不用 exec 的情况以及直接用 then 的情况；返回的结果是 Mongoose 包装后的对象，在此对象上修改结果却无效等等。</li>
+</ol>
+<h4 id="Mongolass"><a href="#Mongolass" class="headerlink" title="Mongolass"></a>Mongolass</h4><p>Mongolass 保持了与 mongodb 一样的 api，又借鉴了许多 Mongoose 的优点，同时又保持了精简。</p>
+<p><strong>优点：</strong></p>
+<ol>
+<li>支持 Promise。</li>
+<li>官方一致的 api。</li>
+<li>简单。参考 Mongolass 的 readme 即可上手，比 Mongoose 精简的多，本身代码也不多。</li>
+<li>可选的 Schema。Mongolass 中的 Schema （基于 <a href="https://www.npmjs.com/package/another-json-schema">another-json-schema</a>）是可选的，并且只用来做文档校验。如果定义了 schema 并关联到某个 model，则插入、更新和覆盖等操作都会校验文档是否满足 schema，同时 schema 也会尝试格式化该字段，类似于 Mongoose，如定义了一个字段为 ObjectId 类型，也可以用 ObjectId 的字符串无缝使用一样。如果没有 schema，则用法跟原生 mongodb 库一样。</li>
+<li>简单却强大的插件系统。可以定义全局插件（对所有 model 生效），也可以定义某个 model 上的插件（只对该 model 生效）。Mongolass 插件的设计思路借鉴了中间件的概念（类似于 Koa），通过定义 <code>beforeXXX</code> 和 <code>afterXXX</code> （XXX为操作符首字母大写，如：<code>afterFind</code>）函数实现，函数返回 yieldable 的对象即可，所以每个插件内可以做一些其他的 IO 操作。不同的插件顺序会有不同的结果，而且每个插件的输入输出都是 plain object，而非类 Mongoose 包装后的对象，没有虚拟属性，无需调用 toJSON 或 toObject。Mongolass 中的 <code>.populate()</code>就是一个内置的插件。</li>
+<li>详细的错误信息。用过 Mongoose 的人一定遇到过这样的错：<br><code>CastError: Cast to ObjectId failed for value &quot;xxx&quot; at path &quot;_id&quot;</code><br>只知道一个期望是 ObjectId 的字段传入了非期望的值，通常很难定位出错的代码，即使定位到也得不到错误现场。得益于 <a href="https://www.npmjs.com/package/another-json-schema">another-json-schema</a>，使用 Mongolass 在查询或者更新时，某个字段不匹配它定义的 schema 时（还没落到 mongodb）会给出详细的错误信息，如下所示：<pre><code class="js"><span class="keyword">const</span> Mongolass = <span class="built_in">require</span>(<span class="string">'mongolass'</span>)
+<span class="keyword">const</span> mongolass = <span class="keyword">new</span> Mongolass(<span class="string">'mongodb://localhost:27017/test'</span>)
+</code></pre>
+</li>
+</ol>
+<p>const User = mongolass.model(‘User’, {<br>  name: { type: ‘string’ },<br>  age: { type: ‘number’ }<br>})</p>
+<p>User<br>  .insertOne({ name: ‘nswbmw’, age: ‘wrong age’ })<br>  .exec()<br>  .then(console.log)<br>  .catch(function (e) {<br>    console.error(e)<br>    console.error(e.stack)<br>  })<br>/*<br>{ [Error: ($.age: “wrong age”) ✖ (type: number)]<br>  validator: ‘type’,<br>  actual: ‘wrong age’,<br>  expected: { type: ‘number’ },<br>  path: ‘$.age’,<br>  schema: ‘UserSchema’,<br>  model: ‘User’,<br>  plugin: ‘MongolassSchema’,<br>  type: ‘beforeInsertOne’,<br>  args: [] }<br>Error: ($.age: “wrong age”) ✖ (type: number)<br>    at Model.insertOne (/Users/nswbmw/Desktop/mongolass-demo/node_modules/mongolass/lib/query.js:108:16)<br>    at Object.<anonymous> (/Users/nswbmw/Desktop/mongolass-demo/app.js:10:4)<br>    at Module._compile (module.js:409:26)<br>    at Object.Module._extensions..js (module.js:416:10)<br>    at Module.load (module.js:343:32)<br>    at Function.Module._load (module.js:300:12)<br>    at Function.Module.runMain (module.js:441:10)<br>    at startup (node.js:139:18)<br>    at node.js:974:3<br> */</p>
+<pre><code>可以看出，错误的原因是在 insertOne 一条用户数据到用户表的时候，age 期望是一个 number 类型的值，而我们传入的字符串 `wrong age`，然后从错误栈中可以快速定位到是 app.js 第 10 行代码抛出的错。
+
+**缺点：**
+
+1. ~~schema 功能较弱，缺少如 required、default 功能。~~
+
+### 扩展阅读
+
+[从零开始写一个 Node.js 的 MongoDB 驱动库](https://zhuanlan.zhihu.com/p/24308524)
+
+上一节：[4.5 页面设计](https://github.com/nswbmw/N-blog/blob/master/book/4.5%20%E9%A1%B5%E9%9D%A2%E8%AE%BE%E8%AE%A1.md)
+
+下一节：[4.7 注册](https://github.com/nswbmw/N-blog/blob/master/book/4.7%20%E6%B3%A8%E5%86%8C.md)</code></pre>

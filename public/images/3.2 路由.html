@@ -1,0 +1,56 @@
+<p>前面我们只是挂载了根路径的路由控制器，现在修改 index.js 如下：</p>
+<pre><code class="js"><span class="keyword">const</span> express = <span class="built_in">require</span>(<span class="string">'express'</span>)
+<span class="keyword">const</span> app = express()
+
+app.get(<span class="string">'/'</span>, <span class="function"><span class="keyword">function</span> (<span class="params">req, res</span>) </span>{
+  res.send(<span class="string">'hello, express'</span>)
+})
+
+app.get(<span class="string">'/users/:name'</span>, <span class="function"><span class="keyword">function</span> (<span class="params">req, res</span>) </span>{
+  res.send(<span class="string">'hello, '</span> + req.params.name)
+})
+
+app.listen(<span class="number">3000</span>)</code></pre>
+<p>以上代码的意思是：当访问根路径时，依然返回 hello, express，当访问如 <code>localhost:3000/users/nswbmw</code> 路径时，返回 hello, nswbmw。路径中 <code>:name</code> 起了占位符的作用，这个占位符的名字是 name，可以通过 <code>req.params.name</code> 取到实际的值。</p>
+<blockquote>
+<p>小提示：express 使用了 <a href="https://www.npmjs.com/package/path-to-regexp">path-to-regexp</a> 模块实现的路由匹配。</p>
+</blockquote>
+<p>不难看出：req 包含了请求来的相关信息，res 则用来返回该请求的响应，更多请查阅 <a href="http://expressjs.com/en/4x/api.html">express 官方文档</a>。下面介绍几个常用的 req 的属性：</p>
+<ul>
+<li><code>req.query</code>: 解析后的 url 中的 querystring，如 <code>?name=haha</code>，req.query 的值为 <code>{name: &#39;haha&#39;}</code></li>
+<li><code>req.params</code>: 解析 url 中的占位符，如 <code>/:name</code>，访问 /haha，req.params 的值为 <code>{name: &#39;haha&#39;}</code></li>
+<li><code>req.body</code>: 解析后请求体，需使用相关的模块，如 <a href="https://www.npmjs.com/package/body-parser">body-parser</a>，请求体为 <code>{&quot;name&quot;: &quot;haha&quot;}</code>，则 req.body 为 <code>{name: &#39;haha&#39;}</code></li>
+</ul>
+<h2 id="3-2-1-express-Router"><a href="#3-2-1-express-Router" class="headerlink" title="3.2.1 express.Router"></a>3.2.1 express.Router</h2><p>上面只是很简单的路由使用的例子（将所有路由控制函数都放到了 index.js），但在实际开发中通常有几十甚至上百的路由，都写在 index.js 既臃肿又不好维护，这时可以使用 express.Router 实现更优雅的路由解决方案。在 myblog 目录下创建空文件夹 routes，在 routes 目录下创建 index.js 和 users.js。最后代码如下：</p>
+<p><strong>index.js</strong></p>
+<pre><code class="js"><span class="keyword">const</span> express = <span class="built_in">require</span>(<span class="string">'express'</span>)
+<span class="keyword">const</span> app = express()
+<span class="keyword">const</span> indexRouter = <span class="built_in">require</span>(<span class="string">'./routes/index'</span>)
+<span class="keyword">const</span> userRouter = <span class="built_in">require</span>(<span class="string">'./routes/users'</span>)
+
+app.use(<span class="string">'/'</span>, indexRouter)
+app.use(<span class="string">'/users'</span>, userRouter)
+
+app.listen(<span class="number">3000</span>)</code></pre>
+<p><strong>routes/index.js</strong></p>
+<pre><code class="js"><span class="keyword">const</span> express = <span class="built_in">require</span>(<span class="string">'express'</span>)
+<span class="keyword">const</span> router = express.Router()
+
+router.get(<span class="string">'/'</span>, <span class="function"><span class="keyword">function</span> (<span class="params">req, res</span>) </span>{
+  res.send(<span class="string">'hello, express'</span>)
+})
+
+<span class="built_in">module</span>.exports = router</code></pre>
+<p><strong>routes/users.js</strong></p>
+<pre><code class="js"><span class="keyword">const</span> express = <span class="built_in">require</span>(<span class="string">'express'</span>)
+<span class="keyword">const</span> router = express.Router()
+
+router.get(<span class="string">'/:name'</span>, <span class="function"><span class="keyword">function</span> (<span class="params">req, res</span>) </span>{
+  res.send(<span class="string">'hello, '</span> + req.params.name)
+})
+
+<span class="built_in">module</span>.exports = router</code></pre>
+<p>以上代码的意思是：我们将 <code>/</code> 和 <code>/users/:name</code> 的路由分别放到了 routes/index.js 和 routes/users.js 中，每个路由文件通过生成一个 express.Router 实例 router 并导出，通过 <code>app.use</code> 挂载到不同的路径。这两种代码实现了相同的功能，但在实际开发中推荐使用 express.Router 将不同的路由分离到不同的路由文件中。</p>
+<p>更多 express.Router 的用法见 <a href="http://expressjs.com/en/4x/api.html#router">express 官方文档</a>。</p>
+<p>上一节：<a href="https://github.com/nswbmw/N-blog/blob/master/book/3.1%20%E5%88%9D%E5%A7%8B%E5%8C%96%E4%B8%80%E4%B8%AA%20Express%20%E9%A1%B9%E7%9B%AE.md">3.1 初始化一个 Express 项目</a></p>
+<p>下一节：<a href="https://github.com/nswbmw/N-blog/blob/master/book/3.3%20%E6%A8%A1%E6%9D%BF%E5%BC%95%E6%93%8E.md">3.3 模板引擎</a></p>

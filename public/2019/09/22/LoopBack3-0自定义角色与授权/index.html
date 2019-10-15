@@ -1,0 +1,727 @@
+<!DOCTYPE html>
+
+
+
+
+
+<html class="theme-next gemini use-motion" lang="zh-CN">
+<head>
+  <meta charset="UTF-8">
+<meta name="generator" content="Hexo 3.9.0">
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=2">
+<meta name="theme-color" content="#222">
+<meta http-equiv="X-UA-Compatible" content="IE=edge">
+  <link rel="apple-touch-icon" sizes="180x180" href="/images/apple-touch-icon-next.png?v=7.3.0">
+  <link rel="icon" type="image/png" sizes="32x32" href="/images/favicon-32x32-next.png?v=7.3.0">
+  <link rel="icon" type="image/png" sizes="16x16" href="/images/favicon-16x16-next.png?v=7.3.0">
+  <link rel="mask-icon" href="/images/logo.svg?v=7.3.0" color="#222">
+
+<link rel="stylesheet" href="/css/main.css?v=7.3.0">
+
+
+<link rel="stylesheet" href="/lib/font-awesome/css/font-awesome.min.css?v=4.7.0">
+
+
+<script id="hexo-configurations">
+  var NexT = window.NexT || {};
+  var CONFIG = {
+    root: '/',
+    scheme: 'Gemini',
+    version: '7.3.0',
+    exturl: false,
+    sidebar: {"position":"left","display":"post","offset":12,"onmobile":false},
+    back2top: {"enable":true,"sidebar":false,"scrollpercent":false},
+    save_scroll: false,
+    copycode: {"enable":false,"show_result":false,"style":null},
+    fancybox: false,
+    mediumzoom: false,
+    lazyload: false,
+    pangu: false,
+    algolia: {
+      applicationID: '',
+      apiKey: '',
+      indexName: '',
+      hits: {"per_page":10},
+      labels: {"input_placeholder":"Search for Posts","hits_empty":"We didn't find any results for the search: ${query}","hits_stats":"${hits} results found in ${time} ms"}
+    },
+    localsearch: {"enable":false,"trigger":"auto","top_n_per_article":1,"unescape":false,"preload":false},
+    path: '',
+    motion: {"enable":true,"async":false,"transition":{"post_block":"fadeIn","post_header":"slideDownIn","post_body":"slideDownIn","coll_header":"slideLeftIn","sidebar":"slideUpIn"}},
+    translation: {
+      copy_button: '复制',
+      copy_success: '复制成功',
+      copy_failure: '复制失败'
+    }
+  };
+</script>
+
+  <meta name="description" content="在我的文章《LoopBack3.0 创建 API 接口实战》里，对官方示例咖啡馆点评项目中的权限管理进行了配置，按照项目需求实现了权限控制。但是，我们在配置权限管理策略时，定义所有的评论者都不能对CoffeeShop模型进行增删改查的操作。    到 bilibili.com 网站观看全部视频 如何对 coffeeShops 的数据进行管理呢？这是我们常说的后台管理，需要一个管理员admin的角色">
+<meta name="keywords" content="loopBack,nodejs,express,RESTful">
+<meta property="og:type" content="article">
+<meta property="og:title" content="LoopBack3.0自定义角色与授权">
+<meta property="og:url" content="http://laoxue6699.github.io/2019/09/22/LoopBack3-0自定义角色与授权/index.html">
+<meta property="og:site_name" content="老学的开发笔记">
+<meta property="og:description" content="在我的文章《LoopBack3.0 创建 API 接口实战》里，对官方示例咖啡馆点评项目中的权限管理进行了配置，按照项目需求实现了权限控制。但是，我们在配置权限管理策略时，定义所有的评论者都不能对CoffeeShop模型进行增删改查的操作。    到 bilibili.com 网站观看全部视频 如何对 coffeeShops 的数据进行管理呢？这是我们常说的后台管理，需要一个管理员admin的角色">
+<meta property="og:locale" content="zh-CN">
+<meta property="og:image" content="http://huangxiaoman.cn/%E6%88%AA%E5%B1%8F2019-09-22%E4%B8%8B%E5%8D%887.58.43.png">
+<meta property="og:image" content="http://huangxiaoman.cn/%E6%88%AA%E5%B1%8F2019-09-22%E4%B8%8B%E5%8D%888.01.39.png">
+<meta property="og:image" content="http://huangxiaoman.cn/%E6%88%AA%E5%B1%8F2019-09-22%E4%B8%8B%E5%8D%888.04.08.png">
+<meta property="og:image" content="http://huangxiaoman.cn/%E6%88%AA%E5%B1%8F2019-09-22%E4%B8%8B%E5%8D%888.04.46.png">
+<meta property="og:image" content="http://huangxiaoman.cn/%E6%88%AA%E5%B1%8F2019-09-22%E4%B8%8B%E5%8D%888.11.23.png">
+<meta property="og:image" content="http://huangxiaoman.cn/%E6%88%AA%E5%B1%8F2019-09-22%E4%B8%8B%E5%8D%888.14.37.png">
+<meta property="og:image" content="http://huangxiaoman.cn/%E6%88%AA%E5%B1%8F2019-09-22%E4%B8%8B%E5%8D%888.11.52.png">
+<meta property="og:image" content="http://huangxiaoman.cn/%E6%88%AA%E5%B1%8F2019-09-22%E4%B8%8B%E5%8D%888.20.36.png">
+<meta property="og:image" content="http://huangxiaoman.cn/%E6%88%AA%E5%B1%8F2019-09-22%E4%B8%8B%E5%8D%888.23.30.png">
+<meta property="og:image" content="http://huangxiaoman.cn/%E6%88%AA%E5%B1%8F2019-09-22%E4%B8%8B%E5%8D%888.28.52.png">
+<meta property="og:updated_time" content="2019-09-25T12:32:46.215Z">
+<meta name="twitter:card" content="summary">
+<meta name="twitter:title" content="LoopBack3.0自定义角色与授权">
+<meta name="twitter:description" content="在我的文章《LoopBack3.0 创建 API 接口实战》里，对官方示例咖啡馆点评项目中的权限管理进行了配置，按照项目需求实现了权限控制。但是，我们在配置权限管理策略时，定义所有的评论者都不能对CoffeeShop模型进行增删改查的操作。    到 bilibili.com 网站观看全部视频 如何对 coffeeShops 的数据进行管理呢？这是我们常说的后台管理，需要一个管理员admin的角色">
+<meta name="twitter:image" content="http://huangxiaoman.cn/%E6%88%AA%E5%B1%8F2019-09-22%E4%B8%8B%E5%8D%887.58.43.png">
+  <link rel="canonical" href="http://laoxue6699.github.io/2019/09/22/LoopBack3-0自定义角色与授权/">
+
+
+<script id="page-configurations">
+  // https://hexo.io/docs/variables.html
+  CONFIG.page = {
+    sidebar: "",
+    isHome: false,
+    isPost: true,
+    isPage: false,
+    isArchive: false
+  };
+</script>
+
+  <title>LoopBack3.0自定义角色与授权 | 老学的开发笔记</title>
+  
+
+
+
+
+
+
+
+
+  <noscript>
+  <style>
+  .use-motion .motion-element,
+  .use-motion .brand,
+  .use-motion .menu-item,
+  .sidebar-inner,
+  .use-motion .post-block,
+  .use-motion .pagination,
+  .use-motion .comments,
+  .use-motion .post-header,
+  .use-motion .post-body,
+  .use-motion .collection-title { opacity: initial; }
+
+  .use-motion .logo,
+  .use-motion .site-title,
+  .use-motion .site-subtitle {
+    opacity: initial;
+    top: initial;
+  }
+
+  .use-motion .logo-line-before i { left: initial; }
+  .use-motion .logo-line-after i { right: initial; }
+  </style>
+</noscript>
+
+</head>
+
+<body itemscope itemtype="http://schema.org/WebPage" lang="zh-CN">
+
+  <div class="container sidebar-position-left">
+    <div class="headband"></div>
+
+    <header id="header" class="header" itemscope itemtype="http://schema.org/WPHeader">
+      <div class="header-inner"><div class="site-brand-wrapper">
+  <div class="site-meta">
+
+    <div class="custom-logo-site-title">
+      <a href="/" class="brand" rel="start">
+        <span class="logo-line-before"><i></i></span>
+        <span class="site-title">老学的开发笔记</span>
+        <span class="logo-line-after"><i></i></span>
+      </a>
+    </div>
+        <p class="site-subtitle">专注前端 兼顾全栈</p>
+      
+  </div>
+
+  <div class="site-nav-toggle">
+    <button aria-label="切换导航栏">
+      <span class="btn-bar"></span>
+      <span class="btn-bar"></span>
+      <span class="btn-bar"></span>
+    </button>
+  </div>
+</div>
+
+
+<nav class="site-nav">
+  
+  <ul id="menu" class="menu">
+      
+      
+      
+        
+        <li class="menu-item menu-item-home">
+      
+    
+
+    <a href="/" rel="section"><i class="menu-item-icon fa fa-fw fa-home"></i> <br>笔记列表</a>
+
+  </li>
+      
+      
+      
+        
+        <li class="menu-item menu-item-archives">
+      
+    
+
+    <a href="/archives/" rel="section"><i class="menu-item-icon fa fa-fw fa-archive"></i> <br>按时间归档</a>
+
+  </li>
+      
+      
+      
+        
+        <li class="menu-item menu-item-categories">
+      
+    
+
+    <a href="/categories/" rel="section"><i class="menu-item-icon fa fa-fw fa-th"></i> <br>笔记分类</a>
+
+  </li>
+      
+      
+      
+        
+        <li class="menu-item menu-item-tags">
+      
+    
+
+    <a href="/tags/" rel="section"><i class="menu-item-icon fa fa-fw fa-tags"></i> <br>技术标签</a>
+
+  </li>
+      
+      
+      
+        
+        <li class="menu-item menu-item-about">
+      
+    
+
+    <a href="/about/" rel="section"><i class="menu-item-icon fa fa-fw fa-user"></i> <br>自我介绍</a>
+
+  </li>
+  </ul>
+
+</nav>
+</div>
+    </header>
+
+    
+
+
+    <main id="main" class="main">
+      <div class="main-inner">
+        <div class="content-wrap">
+            
+
+          <div id="content" class="content page-post-detail">
+            
+
+  <div id="posts" class="posts-expand">
+    
+
+  <article class="post post-type-normal" itemscope itemtype="http://schema.org/Article">
+  
+  
+  
+  <div class="post-block">
+    <link itemprop="mainEntityOfPage" href="http://laoxue6699.github.io/2019/09/22/LoopBack3-0自定义角色与授权/">
+
+    <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
+      <meta itemprop="name" content="老学">
+      <meta itemprop="description" content="好记性不如烂笔头">
+      <meta itemprop="image" content="/images/laoxue.png">
+    </span>
+
+    <span hidden itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
+      <meta itemprop="name" content="老学的开发笔记">
+    </span>
+      <header class="post-header">
+
+        
+          <h1 class="post-title" itemprop="name headline">LoopBack3.0自定义角色与授权
+
+            
+          </h1>
+        
+
+        <div class="post-meta">
+            <span class="post-meta-item">
+              <span class="post-meta-item-icon">
+                <i class="fa fa-calendar-o"></i>
+              </span>
+              <span class="post-meta-item-text">发表于</span>
+
+              
+                
+              
+
+              <time title="创建时间：2019-09-22 17:37:07" itemprop="dateCreated datePublished" datetime="2019-09-22T17:37:07+08:00">2019-09-22</time>
+            </span>
+          
+            
+
+            
+              <span class="post-meta-item">
+                <span class="post-meta-item-icon">
+                  <i class="fa fa-calendar-check-o"></i>
+                </span>
+                <span class="post-meta-item-text">更新于</span>
+                <time title="修改时间：2019-09-25 20:32:46" itemprop="dateModified" datetime="2019-09-25T20:32:46+08:00">2019-09-25</time>
+              </span>
+            
+          
+            <span class="post-meta-item">
+              <span class="post-meta-item-icon">
+                <i class="fa fa-folder-o"></i>
+              </span>
+              <span class="post-meta-item-text">分类于</span>
+              
+                <span itemprop="about" itemscope itemtype="http://schema.org/Thing"><a href="/categories/原创/" itemprop="url" rel="index"><span itemprop="name">原创</span></a></span>
+
+                
+                
+              
+            </span>
+          
+
+          
+
+        </div>
+      </header>
+
+    
+    
+    
+    <div class="post-body" itemprop="articleBody">
+
+      
+        <p>在我的文章<a href="https://juejin.im/post/5d856d575188257e5c111867" target="_blank" rel="noopener">《LoopBack3.0 创建 API 接口实战》</a>里，对官方示例<code>咖啡馆点评项目</code>中的权限管理进行了配置，按照项目需求实现了权限控制。但是，我们在配置权限管理策略时，定义所有的评论者都不能对<code>CoffeeShop</code>模型进行增删改查的操作。</p>
+<iframe src="//player.bilibili.com/player.html?aid=68852902&cid=119328164&page=1" scrolling="no" border="0" frameborder="no" framespacing="0" allowfullscreen="true"> </iframe>
+
+<p><a href="https://www.bilibili.com/video/av68852902/" target="_blank" rel="noopener">到 bilibili.com 网站观看全部视频</a></p>
+<p>如何对 coffeeShops 的数据进行管理呢？这是我们常说的后台管理，需要一个管理员<code>admin</code>的角色来承担。本文继续就这个项目来介绍如何自定义一个角色<code>admin</code>,将该角色与用户关联，并赋予该角色超级管理员的权限，可以对包括<code>CoffeeShop</code>在内的所有模型进行增删改查的操作。</p>
+<a id="more"></a>
+
+<h2 id="一、项目概述"><a href="#一、项目概述" class="headerlink" title="一、项目概述"></a>一、项目概述</h2><p>这是官方给出的一个关于咖啡店点评的示例。</p>
+<p>咖啡店点评是一个网站，我们可以用来发布咖啡店的评论。有三个数据模型：</p>
+<ul>
+<li>CoffeeShop 咖啡店</li>
+<li>Review 评论</li>
+<li>Reviewer 评论者</li>
+</ul>
+<p>它们有如下关系：</p>
+<ul>
+<li>CoffeeShop 拥有多个 review</li>
+<li>CoffeeShop 拥有多个 reviewer</li>
+<li>review 属于一个 CoffeeShop</li>
+<li>review 属于一个 reviewer</li>
+<li>reviewer 拥有多个 review</li>
+</ul>
+<p>一般来说，用户可以创建，编辑，删除和阅读咖啡店的评论，并通过 ACLs 指定基本规则和权限：</p>
+<ul>
+<li>任何人都可以阅读评论，但必须先登录才能创建，编辑或删除它们。</li>
+<li>任何人都可以注册为用户，然后能够登录或者注销。</li>
+<li>登录用户可以创建新的评论，编辑或删除自己的评论，但是他们不能修改咖啡店相关内容。</li>
+</ul>
+<h2 id="二、创建角色"><a href="#二、创建角色" class="headerlink" title="二、创建角色"></a>二、创建角色</h2><p>LoopBack 允许我们定义静态和动态角色.静态角色存储在数据源中,并映射到用户.相反,动态角色不分配给用户,而是在访问期间确定。</p>
+<p>LoopBack 提供以下内置动态角色：</p>
+<table>
+  <tbody>
+    <tr>
+      <th>Role object property</th>
+      <th>String value</th>
+      <th>Description</th>
+    </tr>
+    <tr>
+      <td>Role.OWNER</td>
+      <td>$owner</td>
+      <td>Owner of the object</td>
+    </tr>
+    <tr>
+      <td>Role.AUTHENTICATED</td>
+      <td>$authenticated</td>
+      <td>authenticated user</td>
+    </tr>
+    <tr>
+      <td>Role.UNAUTHENTICATED</td>
+      <td>$unauthenticated</td>
+      <td>Unauthenticated user</td>
+    </tr>
+    <tr>
+      <td>Role.EVERYONE</td>
+      <td>$everyone</td>
+      <td>Everyone</td>
+    </tr>
+  </tbody>
+</table>
+
+<p>静态角色可以通过编码来创建。LoopBack 允许我们自己编写 js 脚本文件，脚本文件可以任意取名，放在<code>/server/boot/</code>目录下。当执行<code>node .</code>命令时， 会自动执行脚本文件中的代码。我们可以这样来编写<code>/server/boot/createAdmin.js</code>代码：</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br><span class="line">35</span><br><span class="line">36</span><br><span class="line">37</span><br><span class="line">38</span><br><span class="line">39</span><br></pre></td><td class="code"><pre><span class="line">module.exports = function(app) &#123;</span><br><span class="line">  var User = app.models.Reviewer;</span><br><span class="line">  var Role = app.models.Role;</span><br><span class="line">  var RoleMapping = app.models.RoleMapping;</span><br><span class="line"></span><br><span class="line">  User.create(</span><br><span class="line">    [&#123; username: &quot;admin&quot;, email: &quot;aa@bb.cc&quot;, password: &quot;admin&quot; &#125;],</span><br><span class="line">    function(err, users) &#123;</span><br><span class="line">      if (err) throw err;</span><br><span class="line"></span><br><span class="line">      console.log(&quot;Created users:&quot;, users);</span><br><span class="line"></span><br><span class="line">      //create the admin role</span><br><span class="line">      Role.create(</span><br><span class="line">        &#123;</span><br><span class="line">          name: &quot;admin&quot;</span><br><span class="line">        &#125;,</span><br><span class="line">        function(err, role) &#123;</span><br><span class="line">          if (err) throw err;</span><br><span class="line"></span><br><span class="line">          console.log(&quot;Created role:&quot;, role);</span><br><span class="line"></span><br><span class="line">          //make RoleMapping</span><br><span class="line">          role.principals.create(</span><br><span class="line">            &#123;</span><br><span class="line">              principalType: RoleMapping.USER,</span><br><span class="line">              principalId: users[0].id</span><br><span class="line">            &#125;,</span><br><span class="line">            function(err, principal) &#123;</span><br><span class="line">              if (err) throw err;</span><br><span class="line"></span><br><span class="line">              console.log(&quot;Created principal:&quot;, principal);</span><br><span class="line">            &#125;</span><br><span class="line">          );</span><br><span class="line">        &#125;</span><br><span class="line">      );</span><br><span class="line">    &#125;</span><br><span class="line">  );</span><br><span class="line">&#125;;</span><br></pre></td></tr></table></figure>
+
+<h3 id="代码解析"><a href="#代码解析" class="headerlink" title="代码解析"></a>代码解析</h3><ul>
+<li>第 1 行是固定写法。定义一个函数并暴露出去，并传入<code>app</code>参数，用来调用 app 的模型。</li>
+<li>第 2-4 行分别定义用户、角色和映射三个变量并赋值。</li>
+<li>第 6 行到 11 行创建用户。如果创建用户成功，继续创建角色。</li>
+<li>第 14 行到 21 行创建角色。如果创建用户成功，继续创建映射。</li>
+<li>第 24 行到 32 行创建用户与角色之间的映射关系。</li>
+</ul>
+<p>角色创建成功后，我们在 MongoDB 数据库中，可以看到刚刚创建的 3 个文档：</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br></pre></td><td class="code"><pre><span class="line">&gt; use cshop</span><br><span class="line">switched to db cshop</span><br><span class="line">&gt; show collections</span><br><span class="line">Reviewer</span><br><span class="line">Role</span><br><span class="line">RoleMapping</span><br><span class="line">&gt; db.Role.find()</span><br><span class="line">&#123; &quot;_id&quot; : ObjectId(&quot;5d875ecf98b8840aad726654&quot;), &quot;name&quot; : &quot;admin&quot;, &quot;created&quot; : ISODate(&quot;2019-09-22T11:45:19.325Z&quot;), &quot;modified&quot; : ISODate(&quot;2019-09-22T11:45:19.325Z&quot;) &#125;</span><br></pre></td></tr></table></figure>
+
+<h2 id="三、角色授权"><a href="#三、角色授权" class="headerlink" title="三、角色授权"></a>三、角色授权</h2><p>角色授权还是用<code>lb acl</code>命令。这次我们给<code>admin</code>角色赋予应用内的最大权限。</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br></pre></td><td class="code"><pre><span class="line">lb acl</span><br><span class="line">? 选择要应用 ACL 条目的模型： （所有现有模型）</span><br><span class="line">? 选择 ACL 作用域： 所有方法和属性</span><br><span class="line">? 选择访问类型： 全部（匹配所有类型）</span><br><span class="line">? 选择角色 其他</span><br><span class="line">? 请输入角色名称： admin</span><br><span class="line">? 选择要应用的许可权 明确授权访问</span><br></pre></td></tr></table></figure>
+
+<p>授权之后，我们打开<code>/common/models/coffee-shop.json</code>文件，可以看到对<code>admin</code>角色的授权配置代码：</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br></pre></td><td class="code"><pre><span class="line">&#123;</span><br><span class="line">      &quot;accessType&quot;: &quot;*&quot;,</span><br><span class="line">      &quot;principalType&quot;: &quot;ROLE&quot;,</span><br><span class="line">      &quot;principalId&quot;: &quot;admin&quot;,</span><br><span class="line">      &quot;permission&quot;: &quot;ALLOW&quot;</span><br><span class="line">    &#125;</span><br></pre></td></tr></table></figure>
+
+<p>在<code>/common/models/review.json</code>和<code>/common/models/review.json</code>文件中同样可以看到对<code>admin</code>角色的授权配置代码。</p>
+<h2 id="四、接口调试"><a href="#四、接口调试" class="headerlink" title="四、接口调试"></a>四、接口调试</h2><p>在项目根目录输入命令<code>node .</code>启动应用。根据提示在浏览器地址栏输入<code>http://localhost:3000/explorer/</code>，来到接口调试页面。</p>
+<h3 id="未登录用户操作"><a href="#未登录用户操作" class="headerlink" title="未登录用户操作"></a>未登录用户操作</h3><p><img src="http://huangxiaoman.cn/%E6%88%AA%E5%B1%8F2019-09-22%E4%B8%8B%E5%8D%887.58.43.png" alt></p>
+<ul>
+<li>点击 Reviewer，展开 Reviewer 相关的 API 接口。</li>
+</ul>
+<p><img src="http://huangxiaoman.cn/%E6%88%AA%E5%B1%8F2019-09-22%E4%B8%8B%E5%8D%888.01.39.png" alt></p>
+<ul>
+<li>点击<code>get/Reviewers</code>，出现操作提示界面。</li>
+</ul>
+<p><img src="http://huangxiaoman.cn/%E6%88%AA%E5%B1%8F2019-09-22%E4%B8%8B%E5%8D%888.04.08.png" alt></p>
+<ul>
+<li>点击<code>Try it out!</code>按钮，显示 401 错误，提示需要授权。</li>
+</ul>
+<p><img src="http://huangxiaoman.cn/%E6%88%AA%E5%B1%8F2019-09-22%E4%B8%8B%E5%8D%888.04.46.png" alt></p>
+<h3 id="用-admin-用户登录"><a href="#用-admin-用户登录" class="headerlink" title="用 admin 用户登录"></a>用 admin 用户登录</h3><ul>
+<li>点击<code>Post/Reviewers/login</code>,出现登录操作提示界面。</li>
+</ul>
+<p><img src="http://huangxiaoman.cn/%E6%88%AA%E5%B1%8F2019-09-22%E4%B8%8B%E5%8D%888.11.23.png" alt></p>
+<ul>
+<li>输入登录参数：</li>
+</ul>
+<p><img src="http://huangxiaoman.cn/%E6%88%AA%E5%B1%8F2019-09-22%E4%B8%8B%E5%8D%888.14.37.png" alt></p>
+<ul>
+<li>登录成功后返回 admin 的相关信息。</li>
+</ul>
+<p><img src="http://huangxiaoman.cn/%E6%88%AA%E5%B1%8F2019-09-22%E4%B8%8B%E5%8D%888.11.52.png" alt></p>
+<ul>
+<li>复制 admin 返回信息中的<code>id</code>字符串值，本例中<code>2F410ZR1bEMJFrTY4LtVPRb6TPzsCPsXOEXpO1u9weD561dx1hkim87AY1fQGlt7</code>粘贴到窗口页面第一行的<code>accessToken</code>中，然后点击<code>Set Access Token</code>按钮。</li>
+</ul>
+<p><img src="http://huangxiaoman.cn/%E6%88%AA%E5%B1%8F2019-09-22%E4%B8%8B%E5%8D%888.20.36.png" alt></p>
+<ul>
+<li>再次点击<code>get/Reviewers</code>，出现操作提示界面后，点击<code>Try it out!</code>按钮，不再提示需要授权的信息，成功返回应用中已有的两个用户的信息。</li>
+</ul>
+<p><img src="http://huangxiaoman.cn/%E6%88%AA%E5%B1%8F2019-09-22%E4%B8%8B%E5%8D%888.23.30.png" alt></p>
+<h3 id="注销登录"><a href="#注销登录" class="headerlink" title="注销登录"></a>注销登录</h3><ul>
+<li>点击<code>Post/Reviewers/logout</code>,注销登录。</li>
+</ul>
+<p><img src="http://huangxiaoman.cn/%E6%88%AA%E5%B1%8F2019-09-22%E4%B8%8B%E5%8D%888.28.52.png" alt></p>
+<ul>
+<li>再次点击<code>get/Reviewers</code>，出现操作提示界面后，点击<code>Try it out!</code>按钮，再次提示需要授权的信息。</li>
+</ul>
+<h3 id="权限验证"><a href="#权限验证" class="headerlink" title="权限验证"></a>权限验证</h3><p>我们对 admin 这个超级管理员角色的权限进行了初步验证。我们还可以参照这些方法对应用中其他的权限控制进行验证。</p>
+<p>在我的文章<a href="https://juejin.im/post/5d856d575188257e5c111867" target="_blank" rel="noopener">《LoopBack3.0 创建 API 接口实战》</a>里，对官方示例<code>咖啡馆点评项目</code>中的权限管理进行了配置，按照项目需求实现了权限控制。</p>
+<ul>
+<li>任何人都可以阅读评论，但必须先登录才能创建，编辑或删除它们。</li>
+<li>任何人都可以注册为用户，然后能够登录或者注销。</li>
+<li>登录用户可以创建新的评论，编辑或删除自己的评论，但是他们不能修改咖啡店相关内容。</li>
+</ul>
+<p>我们都可以在接口调试页面进行验证。</p>
+
+    </div>
+
+    
+    
+    
+        
+      
+
+      <footer class="post-footer">
+          
+            
+          
+          <div class="post-tags">
+            
+              <a href="/tags/loopBack/" rel="tag"># loopBack</a>
+            
+              <a href="/tags/nodejs/" rel="tag"># nodejs</a>
+            
+              <a href="/tags/express/" rel="tag"># express</a>
+            
+              <a href="/tags/RESTful/" rel="tag"># RESTful</a>
+            
+          </div>
+        
+
+        
+
+          <div class="post-nav">
+            <div class="post-nav-next post-nav-item">
+              
+                <a href="/2019/09/20/Loopback3-0创建API接口实战/" rel="next" title="LoopBack3.0创建API接口实战">
+                  <i class="fa fa-chevron-left"></i> LoopBack3.0创建API接口实战
+                </a>
+              
+            </div>
+
+            <span class="post-nav-divider"></span>
+
+            <div class="post-nav-prev post-nav-item">
+              
+                <a href="/2019/09/29/三阶魔方还原/" rel="prev" title="三阶魔方还原">
+                  三阶魔方还原 <i class="fa fa-chevron-right"></i>
+                </a>
+              
+            </div>
+          </div>
+        
+      </footer>
+    
+  </div>
+  
+  
+  
+  </article>
+
+  </div>
+
+
+          </div>
+          
+
+        </div>
+          
+  
+  <div class="sidebar-toggle">
+    <div class="sidebar-toggle-line-wrap">
+      <span class="sidebar-toggle-line sidebar-toggle-line-first"></span>
+      <span class="sidebar-toggle-line sidebar-toggle-line-middle"></span>
+      <span class="sidebar-toggle-line sidebar-toggle-line-last"></span>
+    </div>
+  </div>
+
+  <aside id="sidebar" class="sidebar">
+    <div class="sidebar-inner">
+        <ul class="sidebar-nav motion-element">
+          <li class="sidebar-nav-toc sidebar-nav-active" data-target="post-toc-wrap">
+            文章目录
+          </li>
+          <li class="sidebar-nav-overview" data-target="site-overview-wrap">
+            站点概览
+          </li>
+        </ul>
+      
+
+      <div class="site-overview-wrap sidebar-panel">
+        <div class="site-overview">
+
+          <div class="site-author motion-element" itemprop="author" itemscope itemtype="http://schema.org/Person">
+    <img class="site-author-image" itemprop="image"
+      src="/images/laoxue.png"
+      alt="老学">
+  <p class="site-author-name" itemprop="name">老学</p>
+  <div class="site-description motion-element" itemprop="description">好记性不如烂笔头</div>
+</div>
+  <nav class="site-state motion-element">
+      <div class="site-state-item site-state-posts">
+        
+          <a href="/archives/">
+        
+          <span class="site-state-item-count">10</span>
+          <span class="site-state-item-name">日志</span>
+        </a>
+      </div>
+    
+      
+      
+      <div class="site-state-item site-state-categories">
+        
+          
+            <a href="/categories/">
+          
+        
+        
+        
+          
+        
+          
+        
+        <span class="site-state-item-count">2</span>
+        <span class="site-state-item-name">分类</span>
+        </a>
+      </div>
+    
+      
+      
+      <div class="site-state-item site-state-tags">
+        
+          
+            <a href="/tags/">
+          
+        
+        
+        
+          
+        
+          
+        
+          
+        
+          
+        
+          
+        
+          
+        
+          
+        
+          
+        
+          
+        
+        <span class="site-state-item-count">9</span>
+        <span class="site-state-item-name">标签</span>
+        </a>
+      </div>
+    
+  </nav>
+
+
+
+        </div>
+      </div>
+      <!--noindex-->
+        <div class="post-toc-wrap motion-element sidebar-panel sidebar-panel-active">
+          <div class="post-toc">
+
+            
+            
+            
+            
+
+            
+              <div class="post-toc-content"><ol class="nav"><li class="nav-item nav-level-2"><a class="nav-link" href="#一、项目概述"><span class="nav-number">1.</span> <span class="nav-text">一、项目概述</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#二、创建角色"><span class="nav-number">2.</span> <span class="nav-text">二、创建角色</span></a><ol class="nav-child"><li class="nav-item nav-level-3"><a class="nav-link" href="#代码解析"><span class="nav-number">2.1.</span> <span class="nav-text">代码解析</span></a></li></ol></li><li class="nav-item nav-level-2"><a class="nav-link" href="#三、角色授权"><span class="nav-number">3.</span> <span class="nav-text">三、角色授权</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#四、接口调试"><span class="nav-number">4.</span> <span class="nav-text">四、接口调试</span></a><ol class="nav-child"><li class="nav-item nav-level-3"><a class="nav-link" href="#未登录用户操作"><span class="nav-number">4.1.</span> <span class="nav-text">未登录用户操作</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#用-admin-用户登录"><span class="nav-number">4.2.</span> <span class="nav-text">用 admin 用户登录</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#注销登录"><span class="nav-number">4.3.</span> <span class="nav-text">注销登录</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#权限验证"><span class="nav-number">4.4.</span> <span class="nav-text">权限验证</span></a></li></ol></li></ol></div>
+            
+
+          </div>
+        </div>
+      <!--/noindex-->
+      
+
+    </div>
+  </aside>
+  <div id="sidebar-dimmer"></div>
+
+
+      </div>
+    </main>
+
+    <footer id="footer" class="footer">
+      <div class="footer-inner">
+        <div class="copyright">&copy; <span itemprop="copyrightYear">2019</span>
+  <span class="with-love" id="animate">
+    <i class="fa fa-user"></i>
+  </span>
+  <span class="author" itemprop="copyrightHolder">老学</span>
+</div>
+  <div class="powered-by">由 <a href="https://hexo.io" class="theme-link" rel="noopener" target="_blank">Hexo</a> 强力驱动 v3.9.0</div>
+  <span class="post-meta-divider">|</span>
+  <div class="theme-info">主题 – <a href="https://theme-next.org" class="theme-link" rel="noopener" target="_blank">NexT.Gemini</a> v7.3.0</div>
+
+        
+
+
+
+
+
+
+
+
+        
+      </div>
+    </footer>
+      <div class="back-to-top">
+        <i class="fa fa-arrow-up"></i>
+      </div>
+
+    
+
+  </div>
+
+  
+  <script src="/lib/jquery/index.js?v=3.4.1"></script>
+  <script src="/lib/velocity/velocity.min.js?v=1.2.1"></script>
+  <script src="/lib/velocity/velocity.ui.min.js?v=1.2.1"></script>
+
+<script src="/js/utils.js?v=7.3.0"></script>
+  <script src="/js/motion.js?v=7.3.0"></script>
+
+
+  <script src="/js/affix.js?v=7.3.0"></script>
+  <script src="/js/schemes/pisces.js?v=7.3.0"></script>
+
+
+
+<script src="/js/next-boot.js?v=7.3.0"></script>
+
+
+
+
+  
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+  
+
+  
+
+  
+
+
+  
+  <script src="/js/scrollspy.js?v=7.3.0"></script>
+<script src="/js/post-details.js?v=7.3.0"></script>
+
+
+</body>
+</html>

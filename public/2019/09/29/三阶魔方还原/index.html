@@ -1,0 +1,670 @@
+<!DOCTYPE html>
+
+
+
+
+
+<html class="theme-next gemini use-motion" lang="zh-CN">
+<head>
+  <meta charset="UTF-8">
+<meta name="generator" content="Hexo 3.9.0">
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=2">
+<meta name="theme-color" content="#222">
+<meta http-equiv="X-UA-Compatible" content="IE=edge">
+  <link rel="apple-touch-icon" sizes="180x180" href="/images/apple-touch-icon-next.png?v=7.3.0">
+  <link rel="icon" type="image/png" sizes="32x32" href="/images/favicon-32x32-next.png?v=7.3.0">
+  <link rel="icon" type="image/png" sizes="16x16" href="/images/favicon-16x16-next.png?v=7.3.0">
+  <link rel="mask-icon" href="/images/logo.svg?v=7.3.0" color="#222">
+
+<link rel="stylesheet" href="/css/main.css?v=7.3.0">
+
+
+<link rel="stylesheet" href="/lib/font-awesome/css/font-awesome.min.css?v=4.7.0">
+
+
+<script id="hexo-configurations">
+  var NexT = window.NexT || {};
+  var CONFIG = {
+    root: '/',
+    scheme: 'Gemini',
+    version: '7.3.0',
+    exturl: false,
+    sidebar: {"position":"left","display":"post","offset":12,"onmobile":false},
+    back2top: {"enable":true,"sidebar":false,"scrollpercent":false},
+    save_scroll: false,
+    copycode: {"enable":false,"show_result":false,"style":null},
+    fancybox: false,
+    mediumzoom: false,
+    lazyload: false,
+    pangu: false,
+    algolia: {
+      applicationID: '',
+      apiKey: '',
+      indexName: '',
+      hits: {"per_page":10},
+      labels: {"input_placeholder":"Search for Posts","hits_empty":"We didn't find any results for the search: ${query}","hits_stats":"${hits} results found in ${time} ms"}
+    },
+    localsearch: {"enable":false,"trigger":"auto","top_n_per_article":1,"unescape":false,"preload":false},
+    path: '',
+    motion: {"enable":true,"async":false,"transition":{"post_block":"fadeIn","post_header":"slideDownIn","post_body":"slideDownIn","coll_header":"slideLeftIn","sidebar":"slideUpIn"}},
+    translation: {
+      copy_button: '复制',
+      copy_success: '复制成功',
+      copy_failure: '复制失败'
+    }
+  };
+</script>
+
+  <meta name="description" content="第一步 底部十字花假如底部为白色  拼出顶部黄色十字，中心为黄色，四周棱块为白色。  四面中心块与顶部十字棱块的侧面颜色分别对齐。  逐面向下翻转。  底面白色十字花包括花瓣完成。">
+<meta name="keywords" content="休闲">
+<meta property="og:type" content="article">
+<meta property="og:title" content="三阶魔方还原">
+<meta property="og:url" content="http://laoxue6699.github.io/2019/09/29/三阶魔方还原/index.html">
+<meta property="og:site_name" content="老学的开发笔记">
+<meta property="og:description" content="第一步 底部十字花假如底部为白色  拼出顶部黄色十字，中心为黄色，四周棱块为白色。  四面中心块与顶部十字棱块的侧面颜色分别对齐。  逐面向下翻转。  底面白色十字花包括花瓣完成。">
+<meta property="og:locale" content="zh-CN">
+<meta property="og:updated_time" content="2019-09-29T05:19:26.541Z">
+<meta name="twitter:card" content="summary">
+<meta name="twitter:title" content="三阶魔方还原">
+<meta name="twitter:description" content="第一步 底部十字花假如底部为白色  拼出顶部黄色十字，中心为黄色，四周棱块为白色。  四面中心块与顶部十字棱块的侧面颜色分别对齐。  逐面向下翻转。  底面白色十字花包括花瓣完成。">
+  <link rel="canonical" href="http://laoxue6699.github.io/2019/09/29/三阶魔方还原/">
+
+
+<script id="page-configurations">
+  // https://hexo.io/docs/variables.html
+  CONFIG.page = {
+    sidebar: "",
+    isHome: false,
+    isPost: true,
+    isPage: false,
+    isArchive: false
+  };
+</script>
+
+  <title>三阶魔方还原 | 老学的开发笔记</title>
+  
+
+
+
+
+
+
+
+
+  <noscript>
+  <style>
+  .use-motion .motion-element,
+  .use-motion .brand,
+  .use-motion .menu-item,
+  .sidebar-inner,
+  .use-motion .post-block,
+  .use-motion .pagination,
+  .use-motion .comments,
+  .use-motion .post-header,
+  .use-motion .post-body,
+  .use-motion .collection-title { opacity: initial; }
+
+  .use-motion .logo,
+  .use-motion .site-title,
+  .use-motion .site-subtitle {
+    opacity: initial;
+    top: initial;
+  }
+
+  .use-motion .logo-line-before i { left: initial; }
+  .use-motion .logo-line-after i { right: initial; }
+  </style>
+</noscript>
+
+</head>
+
+<body itemscope itemtype="http://schema.org/WebPage" lang="zh-CN">
+
+  <div class="container sidebar-position-left">
+    <div class="headband"></div>
+
+    <header id="header" class="header" itemscope itemtype="http://schema.org/WPHeader">
+      <div class="header-inner"><div class="site-brand-wrapper">
+  <div class="site-meta">
+
+    <div class="custom-logo-site-title">
+      <a href="/" class="brand" rel="start">
+        <span class="logo-line-before"><i></i></span>
+        <span class="site-title">老学的开发笔记</span>
+        <span class="logo-line-after"><i></i></span>
+      </a>
+    </div>
+        <p class="site-subtitle">专注前端 兼顾全栈</p>
+      
+  </div>
+
+  <div class="site-nav-toggle">
+    <button aria-label="切换导航栏">
+      <span class="btn-bar"></span>
+      <span class="btn-bar"></span>
+      <span class="btn-bar"></span>
+    </button>
+  </div>
+</div>
+
+
+<nav class="site-nav">
+  
+  <ul id="menu" class="menu">
+      
+      
+      
+        
+        <li class="menu-item menu-item-home">
+      
+    
+
+    <a href="/" rel="section"><i class="menu-item-icon fa fa-fw fa-home"></i> <br>笔记列表</a>
+
+  </li>
+      
+      
+      
+        
+        <li class="menu-item menu-item-archives">
+      
+    
+
+    <a href="/archives/" rel="section"><i class="menu-item-icon fa fa-fw fa-archive"></i> <br>按时间归档</a>
+
+  </li>
+      
+      
+      
+        
+        <li class="menu-item menu-item-categories">
+      
+    
+
+    <a href="/categories/" rel="section"><i class="menu-item-icon fa fa-fw fa-th"></i> <br>笔记分类</a>
+
+  </li>
+      
+      
+      
+        
+        <li class="menu-item menu-item-tags">
+      
+    
+
+    <a href="/tags/" rel="section"><i class="menu-item-icon fa fa-fw fa-tags"></i> <br>技术标签</a>
+
+  </li>
+      
+      
+      
+        
+        <li class="menu-item menu-item-about">
+      
+    
+
+    <a href="/about/" rel="section"><i class="menu-item-icon fa fa-fw fa-user"></i> <br>自我介绍</a>
+
+  </li>
+  </ul>
+
+</nav>
+</div>
+    </header>
+
+    
+
+
+    <main id="main" class="main">
+      <div class="main-inner">
+        <div class="content-wrap">
+            
+
+          <div id="content" class="content page-post-detail">
+            
+
+  <div id="posts" class="posts-expand">
+    
+
+  <article class="post post-type-normal" itemscope itemtype="http://schema.org/Article">
+  
+  
+  
+  <div class="post-block">
+    <link itemprop="mainEntityOfPage" href="http://laoxue6699.github.io/2019/09/29/三阶魔方还原/">
+
+    <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
+      <meta itemprop="name" content="老学">
+      <meta itemprop="description" content="好记性不如烂笔头">
+      <meta itemprop="image" content="/images/laoxue.png">
+    </span>
+
+    <span hidden itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
+      <meta itemprop="name" content="老学的开发笔记">
+    </span>
+      <header class="post-header">
+
+        
+          <h1 class="post-title" itemprop="name headline">三阶魔方还原
+
+            
+          </h1>
+        
+
+        <div class="post-meta">
+            <span class="post-meta-item">
+              <span class="post-meta-item-icon">
+                <i class="fa fa-calendar-o"></i>
+              </span>
+              <span class="post-meta-item-text">发表于</span>
+
+              
+                
+              
+
+              <time title="创建时间：2019-09-29 10:57:20 / 修改时间：13:19:26" itemprop="dateCreated datePublished" datetime="2019-09-29T10:57:20+08:00">2019-09-29</time>
+            </span>
+          
+            
+
+            
+          
+
+          
+
+        </div>
+      </header>
+
+    
+    
+    
+    <div class="post-body" itemprop="articleBody">
+
+      
+        <h2 id="第一步-底部十字花"><a href="#第一步-底部十字花" class="headerlink" title="第一步 底部十字花"></a>第一步 底部十字花</h2><p>假如底部为白色</p>
+<ul>
+<li><p>拼出顶部黄色十字，中心为黄色，四周棱块为白色。</p>
+</li>
+<li><p>四面中心块与顶部十字棱块的侧面颜色分别对齐。</p>
+</li>
+<li><p>逐面向下翻转。</p>
+</li>
+<li><p>底面白色十字花包括花瓣完成。</p>
+<a id="more"></a>
+
+</li>
+</ul>
+<h2 id="第二步-还原底面角块"><a href="#第二步-还原底面角块" class="headerlink" title="第二步 还原底面角块"></a>第二步 还原底面角块</h2><ul>
+<li>在顶部找出含有白色的角块</li>
+<li>移动该角块到其他两面颜色中心块颜色相同的夹角上</li>
+<li>角块放在我们这一面的右上角</li>
+</ul>
+<h3 id="当白色朝右时"><a href="#当白色朝右时" class="headerlink" title="当白色朝右时"></a>当白色朝右时</h3><ul>
+<li>对齐</li>
+<li>右上，顶左，右下。</li>
+</ul>
+<h3 id="当白色朝前时"><a href="#当白色朝前时" class="headerlink" title="当白色朝前时"></a>当白色朝前时</h3><ul>
+<li>对齐</li>
+<li>顶左，右上，顶右，右下。</li>
+</ul>
+<h3 id="当白色朝上时"><a href="#当白色朝上时" class="headerlink" title="当白色朝上时"></a>当白色朝上时</h3><ul>
+<li>对齐</li>
+<li>顶上，顶左左，右下，顶右。</li>
+<li>转化为白色朝右的情况了。</li>
+</ul>
+<h2 id="第三步-第二层复原"><a href="#第三步-第二层复原" class="headerlink" title="第三步 第二层复原"></a>第三步 第二层复原</h2><p>只有四个棱块需要归位。不含白色与黄色的棱块。</p>
+<ul>
+<li>在顶层找到不含黄色的棱块。</li>
+<li>对齐。侧面颜色与中心块颜色一致。</li>
+</ul>
+<h3 id="还原到左边"><a href="#还原到左边" class="headerlink" title="还原到左边"></a>还原到左边</h3><ul>
+<li>远离。即顶右。</li>
+<li>左手手法。</li>
+<li>转体。</li>
+<li>右手手法。</li>
+</ul>
+<h3 id="还原到右边"><a href="#还原到右边" class="headerlink" title="还原到右边"></a>还原到右边</h3><ul>
+<li>远离。即顶左。</li>
+<li>右手手法。</li>
+<li>转体。</li>
+<li>左手手法。</li>
+</ul>
+<h3 id="右手手法"><a href="#右手手法" class="headerlink" title="右手手法"></a>右手手法</h3><ul>
+<li>右上，顶左，右下，顶右。</li>
+</ul>
+<h3 id="左手手法"><a href="#左手手法" class="headerlink" title="左手手法"></a>左手手法</h3><ul>
+<li>左上，顶右，左下，顶左。</li>
+</ul>
+<h3 id="顶层找不到相关棱块时"><a href="#顶层找不到相关棱块时" class="headerlink" title="顶层找不到相关棱块时"></a>顶层找不到相关棱块时</h3><ul>
+<li>目标棱块放在右手位置</li>
+<li>右手手法</li>
+<li>转体</li>
+<li>左手手法</li>
+<li>再按普通情况还原</li>
+</ul>
+<h2 id="第四步-顶层十字"><a href="#第四步-顶层十字" class="headerlink" title="第四步 顶层十字"></a>第四步 顶层十字</h2><ul>
+<li>直线横放。顺，右手手法，逆。</li>
+<li>拐弯放在九点钟位置。顺，两次右手手法，逆。</li>
+<li>只有一个中心点不认方向。上面两种解法一起做。</li>
+</ul>
+<h3 id="顺和逆手法"><a href="#顺和逆手法" class="headerlink" title="顺和逆手法"></a>顺和逆手法</h3><ul>
+<li>顺：前面向右转</li>
+<li>逆：前面向左转</li>
+</ul>
+<h2 id="第五步-顶面还原"><a href="#第五步-顶面还原" class="headerlink" title="第五步 顶面还原"></a>第五步 顶面还原</h2><p>两个角块、三个角块、四个角块不是黄色。</p>
+<h3 id="三个角块不是黄色"><a href="#三个角块不是黄色" class="headerlink" title="三个角块不是黄色"></a>三个角块不是黄色</h3><ul>
+<li>鱼鳍在前面左边。 小鱼一。</li>
+<li>鱼鳍在前面左边。 小鱼二。</li>
+</ul>
+<h3 id="小鱼一"><a href="#小鱼一" class="headerlink" title="小鱼一"></a>小鱼一</h3><ul>
+<li>鱼头朝左上。</li>
+<li>右下，顶右，右上，顶右，右下，顶右右，右上。</li>
+</ul>
+<h3 id="小鱼二"><a href="#小鱼二" class="headerlink" title="小鱼二"></a>小鱼二</h3><ul>
+<li>鱼头朝左下。</li>
+<li>右上，顶左，右下，顶左，右上，顶左左，右下。</li>
+</ul>
+<h3 id="两个或四个角块不是黄色"><a href="#两个或四个角块不是黄色" class="headerlink" title="两个或四个角块不是黄色"></a>两个或四个角块不是黄色</h3><ul>
+<li>两碰，四不碰。左手大拇指碰不碰黄色。</li>
+<li>小鱼二。</li>
+<li>再做对应的小鱼手法。</li>
+</ul>
+<h2 id="第六步-顶层角块还原"><a href="#第六步-顶层角块还原" class="headerlink" title="第六步 顶层角块还原"></a>第六步 顶层角块还原</h2><ul>
+<li>相同颜色角块朝右。特殊情况先做下面两步。</li>
+<li>顶面朝自己</li>
+<li>L 型变化： 上上，底底，右下，顶右，右上，底底，右下，顶左，右下。</li>
+</ul>
+<h2 id="第七步-顶层棱块还原"><a href="#第七步-顶层棱块还原" class="headerlink" title="第七步 顶层棱块还原"></a>第七步 顶层棱块还原</h2><p>四个棱块变三个棱块</p>
+<ul>
+<li>小鱼一手法</li>
+<li>小鱼二手法</li>
+</ul>
+<p>三棱往左归位</p>
+<ul>
+<li>完成的一面朝后</li>
+<li>小鱼二</li>
+<li>小鱼一</li>
+</ul>
+<p>三棱往右归位</p>
+<ul>
+<li>完成的一面朝前</li>
+<li>小鱼一</li>
+<li>小鱼二</li>
+</ul>
+
+    </div>
+
+    
+    
+    
+        
+      
+
+      <footer class="post-footer">
+          
+            
+          
+          <div class="post-tags">
+            
+              <a href="/tags/休闲/" rel="tag"># 休闲</a>
+            
+          </div>
+        
+
+        
+
+          <div class="post-nav">
+            <div class="post-nav-next post-nav-item">
+              
+                <a href="/2019/09/22/LoopBack3-0自定义角色与授权/" rel="next" title="LoopBack3.0自定义角色与授权">
+                  <i class="fa fa-chevron-left"></i> LoopBack3.0自定义角色与授权
+                </a>
+              
+            </div>
+
+            <span class="post-nav-divider"></span>
+
+            <div class="post-nav-prev post-nav-item">
+              
+                <a href="/2019/09/30/git-帮助文档如何以HTML格式浏览/" rel="prev" title="git 帮助文档如何以HTML格式浏览">
+                  git 帮助文档如何以HTML格式浏览 <i class="fa fa-chevron-right"></i>
+                </a>
+              
+            </div>
+          </div>
+        
+      </footer>
+    
+  </div>
+  
+  
+  
+  </article>
+
+  </div>
+
+
+          </div>
+          
+
+        </div>
+          
+  
+  <div class="sidebar-toggle">
+    <div class="sidebar-toggle-line-wrap">
+      <span class="sidebar-toggle-line sidebar-toggle-line-first"></span>
+      <span class="sidebar-toggle-line sidebar-toggle-line-middle"></span>
+      <span class="sidebar-toggle-line sidebar-toggle-line-last"></span>
+    </div>
+  </div>
+
+  <aside id="sidebar" class="sidebar">
+    <div class="sidebar-inner">
+        <ul class="sidebar-nav motion-element">
+          <li class="sidebar-nav-toc sidebar-nav-active" data-target="post-toc-wrap">
+            文章目录
+          </li>
+          <li class="sidebar-nav-overview" data-target="site-overview-wrap">
+            站点概览
+          </li>
+        </ul>
+      
+
+      <div class="site-overview-wrap sidebar-panel">
+        <div class="site-overview">
+
+          <div class="site-author motion-element" itemprop="author" itemscope itemtype="http://schema.org/Person">
+    <img class="site-author-image" itemprop="image"
+      src="/images/laoxue.png"
+      alt="老学">
+  <p class="site-author-name" itemprop="name">老学</p>
+  <div class="site-description motion-element" itemprop="description">好记性不如烂笔头</div>
+</div>
+  <nav class="site-state motion-element">
+      <div class="site-state-item site-state-posts">
+        
+          <a href="/archives/">
+        
+          <span class="site-state-item-count">10</span>
+          <span class="site-state-item-name">日志</span>
+        </a>
+      </div>
+    
+      
+      
+      <div class="site-state-item site-state-categories">
+        
+          
+            <a href="/categories/">
+          
+        
+        
+        
+          
+        
+          
+        
+        <span class="site-state-item-count">2</span>
+        <span class="site-state-item-name">分类</span>
+        </a>
+      </div>
+    
+      
+      
+      <div class="site-state-item site-state-tags">
+        
+          
+            <a href="/tags/">
+          
+        
+        
+        
+          
+        
+          
+        
+          
+        
+          
+        
+          
+        
+          
+        
+          
+        
+          
+        
+          
+        
+        <span class="site-state-item-count">9</span>
+        <span class="site-state-item-name">标签</span>
+        </a>
+      </div>
+    
+  </nav>
+
+
+
+        </div>
+      </div>
+      <!--noindex-->
+        <div class="post-toc-wrap motion-element sidebar-panel sidebar-panel-active">
+          <div class="post-toc">
+
+            
+            
+            
+            
+
+            
+              <div class="post-toc-content"><ol class="nav"><li class="nav-item nav-level-2"><a class="nav-link" href="#第一步-底部十字花"><span class="nav-number">1.</span> <span class="nav-text">第一步 底部十字花</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#第二步-还原底面角块"><span class="nav-number">2.</span> <span class="nav-text">第二步 还原底面角块</span></a><ol class="nav-child"><li class="nav-item nav-level-3"><a class="nav-link" href="#当白色朝右时"><span class="nav-number">2.1.</span> <span class="nav-text">当白色朝右时</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#当白色朝前时"><span class="nav-number">2.2.</span> <span class="nav-text">当白色朝前时</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#当白色朝上时"><span class="nav-number">2.3.</span> <span class="nav-text">当白色朝上时</span></a></li></ol></li><li class="nav-item nav-level-2"><a class="nav-link" href="#第三步-第二层复原"><span class="nav-number">3.</span> <span class="nav-text">第三步 第二层复原</span></a><ol class="nav-child"><li class="nav-item nav-level-3"><a class="nav-link" href="#还原到左边"><span class="nav-number">3.1.</span> <span class="nav-text">还原到左边</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#还原到右边"><span class="nav-number">3.2.</span> <span class="nav-text">还原到右边</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#右手手法"><span class="nav-number">3.3.</span> <span class="nav-text">右手手法</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#左手手法"><span class="nav-number">3.4.</span> <span class="nav-text">左手手法</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#顶层找不到相关棱块时"><span class="nav-number">3.5.</span> <span class="nav-text">顶层找不到相关棱块时</span></a></li></ol></li><li class="nav-item nav-level-2"><a class="nav-link" href="#第四步-顶层十字"><span class="nav-number">4.</span> <span class="nav-text">第四步 顶层十字</span></a><ol class="nav-child"><li class="nav-item nav-level-3"><a class="nav-link" href="#顺和逆手法"><span class="nav-number">4.1.</span> <span class="nav-text">顺和逆手法</span></a></li></ol></li><li class="nav-item nav-level-2"><a class="nav-link" href="#第五步-顶面还原"><span class="nav-number">5.</span> <span class="nav-text">第五步 顶面还原</span></a><ol class="nav-child"><li class="nav-item nav-level-3"><a class="nav-link" href="#三个角块不是黄色"><span class="nav-number">5.1.</span> <span class="nav-text">三个角块不是黄色</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#小鱼一"><span class="nav-number">5.2.</span> <span class="nav-text">小鱼一</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#小鱼二"><span class="nav-number">5.3.</span> <span class="nav-text">小鱼二</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#两个或四个角块不是黄色"><span class="nav-number">5.4.</span> <span class="nav-text">两个或四个角块不是黄色</span></a></li></ol></li><li class="nav-item nav-level-2"><a class="nav-link" href="#第六步-顶层角块还原"><span class="nav-number">6.</span> <span class="nav-text">第六步 顶层角块还原</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#第七步-顶层棱块还原"><span class="nav-number">7.</span> <span class="nav-text">第七步 顶层棱块还原</span></a></li></ol></div>
+            
+
+          </div>
+        </div>
+      <!--/noindex-->
+      
+
+    </div>
+  </aside>
+  <div id="sidebar-dimmer"></div>
+
+
+      </div>
+    </main>
+
+    <footer id="footer" class="footer">
+      <div class="footer-inner">
+        <div class="copyright">&copy; <span itemprop="copyrightYear">2019</span>
+  <span class="with-love" id="animate">
+    <i class="fa fa-user"></i>
+  </span>
+  <span class="author" itemprop="copyrightHolder">老学</span>
+</div>
+  <div class="powered-by">由 <a href="https://hexo.io" class="theme-link" rel="noopener" target="_blank">Hexo</a> 强力驱动 v3.9.0</div>
+  <span class="post-meta-divider">|</span>
+  <div class="theme-info">主题 – <a href="https://theme-next.org" class="theme-link" rel="noopener" target="_blank">NexT.Gemini</a> v7.3.0</div>
+
+        
+
+
+
+
+
+
+
+
+        
+      </div>
+    </footer>
+      <div class="back-to-top">
+        <i class="fa fa-arrow-up"></i>
+      </div>
+
+    
+
+  </div>
+
+  
+  <script src="/lib/jquery/index.js?v=3.4.1"></script>
+  <script src="/lib/velocity/velocity.min.js?v=1.2.1"></script>
+  <script src="/lib/velocity/velocity.ui.min.js?v=1.2.1"></script>
+
+<script src="/js/utils.js?v=7.3.0"></script>
+  <script src="/js/motion.js?v=7.3.0"></script>
+
+
+  <script src="/js/affix.js?v=7.3.0"></script>
+  <script src="/js/schemes/pisces.js?v=7.3.0"></script>
+
+
+
+<script src="/js/next-boot.js?v=7.3.0"></script>
+
+
+
+
+  
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+  
+
+  
+
+  
+
+
+  
+  <script src="/js/scrollspy.js?v=7.3.0"></script>
+<script src="/js/post-details.js?v=7.3.0"></script>
+
+
+</body>
+</html>
